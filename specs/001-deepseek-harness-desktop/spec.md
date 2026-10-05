@@ -8,6 +8,8 @@
 
 **Input**: User description (English translation): "I want to build a desktop application for DeepSeek Harness (https://github.com/deepseek-ai/deepseek-harness)."
 
+**Additional Input** (English translation): "Implementation details should, wherever practical, follow the official desktop implementation: https://github.com/deepseek-ai/deepseek-harness/tree/master/apps." This is a supplement to this feature, not a separate feature.
+
 ## Clarifications
 
 ### Session 2026-10-06
@@ -73,6 +75,24 @@ As a developer, I want to reopen earlier sessions in their original workspaces a
 3. **Given** an unexpected application exit during work, **When** the user reopens the session, **Then** persisted history remains readable, the incomplete task is labeled interrupted, and no pending permission is treated as approved.
 4. **Given** the original workspace was moved or removed, **When** the user opens its session, **Then** history remains readable but further task execution is blocked until the user explicitly selects and confirms a replacement directory.
 
+---
+
+### User Story 4 - Rely on official desktop behavior (Priority: P2)
+
+As a developer, I want familiar desktop actions to follow the official application's behavior wherever compatible with this product's agreed constraints, so that the application behaves predictably without adding unrelated features.
+
+**Why this priority**: Official behavior provides an established reference while our own shell, background lifetime, safety, and release constraints remain binding.
+
+**Independent Test**: Compare the supported desktop behaviors against a recorded official revision and verify that any differences are intentional and explained.
+
+**Acceptance Scenarios**:
+
+1. **Given** planning or review of desktop behavior, **When** launch/readiness, window lifecycle, quit confirmation, menus/shortcuts, error recovery, and release compatibility are examined, **Then** each area identifies the official reference revision and source location, adopted/adapted/excluded decision, expected outcome, and acceptance scenario; differences state their reason and user impact.
+2. **Given** official behavior conflicts with an approved requirement or is outside scope, **When** it is considered for adoption, **Then** the approved constraint takes precedence and the difference is documented without implicitly adding capabilities or platforms.
+3. **Given** an available menu action and its keyboard shortcut, **When** either route is used, **Then** both produce the same outcome while retaining the distinction between closing windows and fully quitting.
+4. **Given** a quit confirmation is unresolved or running work cannot be determined, **When** quit is requested again or with uncertain work status, **Then** only one unresolved confirmation is presented and possible interruption is warned about rather than silently quitting; cancellation preserves work.
+5. **Given** the official reference or supported Harness release changes, **When** adoption is proposed, **Then** affected decisions and comparison scenarios are reviewed before changing the baseline; unavailable evidence remains pending rather than being reported as passing.
+
 ### Edge Cases
 
 - A workspace is unreadable or becomes unavailable: explain the access problem, retain history, and block new work against that directory.
@@ -85,6 +105,10 @@ As a developer, I want to reopen earlier sessions in their original workspaces a
 - Local Harness operation exits unexpectedly: preserve saved history, show interrupted status, and allow recovery without duplicating the previous task.
 - The available Harness version is incompatible with the application: explain the incompatibility and supported version before enabling task execution.
 - A session has at least 1,000 messages: it remains navigable and meets the history performance target below.
+- The official moving branch differs from the bundled release, or a behavior exists only on another platform: assess compatibility and document adaptation or exclusion without expanding scope.
+- Official source or comparison evidence is unavailable: retain the last recorded baseline, mark evidence pending, and do not claim verified parity.
+- Official behavior has no counterpart or exposes sensitive configuration: preserve this product's agreed behavior and credential-concealment requirements rather than copying it blindly.
+- Repeated quit requests or unknown work status: share one unresolved confirmation and warn about possible interruption.
 
 ## Requirements *(mandatory)*
 
@@ -114,6 +138,10 @@ As a developer, I want to reopen earlier sessions in their original workspaces a
 - **FR-020**: The desktop shell MUST use Tauri and distribute Node.js and dsh with the installed application as sidecars. Launching Harness MUST NOT require a separately installed Node.js, dsh, or package manager, or download runtime dependencies on first launch. Acceptance: launch an installed build on a clean supported computer without those tools.
 - **FR-021**: The desktop product's canonical version MUST equal the bundled dsh package version, including any prerelease suffix. Build and startup checks MUST reject a mismatched bundle before task execution. Acceptance: inspect the release manifest and About view, and attempt to build and launch a deliberately mismatched bundle.
 
+- **FR-022**: The product MUST preferentially reference the official desktop implementation under the supplied `apps` source for in-scope desktop behavior and implementation decisions. Existing approved constraints MUST take precedence; reference availability alone MUST NOT authorize full feature parity or new capabilities. Planning MUST record the immutable reference revision, source locations, expected outcomes, adoption/adaptation/exclusion decisions, and reasons for differences across launch/readiness, window lifecycle, quit confirmation, menus/shortcuts, error recovery, and release compatibility. Technical reuse choices belong in the plan. Acceptance: User Story 4, scenarios 1 and 2.
+- **FR-023**: Menu and keyboard routes for the same desktop action MUST produce equivalent outcomes. Repeated quit requests MUST share one unresolved confirmation; when Harness may be running but work status is unknown, quitting MUST warn about possible interruption. Acceptance: User Story 4, scenarios 3 and 4.
+- **FR-024**: Adopted or adapted desktop behavior MUST have comparative acceptance evidence against the recorded official baseline, with intentional differences explained and unavailable or untested evidence labeled pending. Changes to the reference baseline or supported Harness release MUST trigger review of affected decisions and acceptance scenarios before adoption. Acceptance: User Story 4, scenarios 1 and 5.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Workspace**: A user-selected local project directory, its display name, availability, and associated sessions. Each session belongs to one workspace; changing its directory requires explicit confirmation.
@@ -136,9 +164,15 @@ As a developer, I want to reopen earlier sessions in their original workspaces a
 
 - **SC-007**: Across 10 controlled close/reopen cycles, including running tasks and pending approvals, 100% retain the same running dsh instance and current session without closure-induced cancellation, automatic permission decisions, or duplicated work. Across 10 confirmed full quits, the application's dsh instance is stopped when quitting completes; declining quit confirmation preserves both the application and dsh in every test.
 
+- **SC-008**: Before affected implementation begins, all six desktop behavior areas in FR-022 have complete reference decisions, and 100% of adaptations or exclusions state their reason and user impact. At release review, all adopted or adapted behaviors have passing comparative evidence with no unexplained differences; pending evidence prevents an alignment-complete claim.
+- **SC-009**: Across 10 quit trials covering repeated requests, unknown work status, and no open windows, every trial presents at most one unresolved confirmation, preserves work when declined, and stops the application's Harness operation before a confirmed quit completes.
+
 ## Assumptions
 
 - The initial audience is individual developers working on local projects, not teams administering shared remote agents.
+- "Refer wherever practical" means prefer the official desktop implementation while documenting justified adaptations, not replace the chosen shell or require identical appearance or full product parity. Existing Tauri, bundled Node.js/dsh, exact version equality, background lifetime, safety, and ownership requirements remain unchanged.
+- Official reference: https://github.com/deepseek-ai/deepseek-harness/tree/master/apps. Initial inspection on 2026-10-06 identified revision `5badb15009ae1756c3afe0ae0cef1faafc290ccc`; `apps/desktop` and `apps/desktop-host` are relevant reference areas. Inspection alone does not establish runtime parity or compatibility with the bundled release.
+- The existing plan and research must be reconciled with FR-022–FR-024 before affected implementation. Comparative verification depends on access to the official application or reproducible official behavior evidence; missing evidence remains pending.
 - The initial supported operating system is macOS. This is a provisional scope assumption for the first release, not a requirement for future releases; Windows and Linux support are deferred unless the user changes this assumption before planning.
 - Upstream already contains Web and Desktop applications, but this product provides its own desktop shell around the upstream dsh Web experience, not the upstream Desktop application. dsh is the upstream software kernel, not an operating-system kernel. A new agent engine, an independently rebuilt task interface, duplicate Harness data management, and feature parity with every upstream plugin are outside scope.
 - The minimum useful release consists of desktop launch and local operation, one supported DeepSeek model connection, workspace selection, task progress and approvals, stopping, and persistent session history.
