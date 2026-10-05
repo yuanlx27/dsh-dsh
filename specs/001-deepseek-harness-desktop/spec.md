@@ -14,6 +14,7 @@
 
 - Q: What responsibilities belong to upstream dsh and to this desktop product? → A: Upstream dsh is the kernel that starts and provides the Web service; our own desktop shell provides window management, keyboard shortcuts, and other desktop application functions.
 - Q: Should dsh and running tasks continue when the user closes the last window? → A: Yes. Closing windows leaves dsh running in the background; only fully quitting the application stops dsh during normal operation.
+- Q: Which desktop stack and runtime distribution should the product use? → A: Use Tauri and bundle both Node.js and dsh as application sidecars. The desktop product version must equal the bundled dsh version.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -109,6 +110,9 @@ As a developer, I want to reopen earlier sessions in their original workspaces a
 - **FR-018**: The product MUST use upstream dsh as its kernel and present its Web experience within our own desktop shell. dsh MUST retain responsibility for the Web service, model configuration, workspaces, tasks, approvals, and session persistence; the desktop shell MUST provide the application window and desktop keyboard commands without independently duplicating those Harness responsibilities. FR-003–FR-009 and FR-011–FR-013 describe end-to-end capabilities supplied by dsh, not separate shell-owned implementations. Acceptance: complete User Stories 1–3 inside the shell and verify that their Harness configuration and session records remain owned by dsh; invoking the application quit command through its menu or Command+Q MUST follow FR-010.
 
 - **FR-019**: During normal operation, closing any or all application windows MUST NOT quit the application, stop dsh, or cancel its tasks. Reopening a window MUST reconnect to the same running dsh instance without creating another instance or replaying work. A full application quit MUST stop the application's dsh instance; active work MUST receive the confirmation required by FR-010 even when no windows are open. Stopping an individual task under FR-009 MUST NOT stop dsh. Acceptance: User Story 1, scenarios 6–8, and the background-task and pending-approval edge cases.
+
+- **FR-020**: The desktop shell MUST use Tauri and distribute Node.js and dsh with the installed application as sidecars. Launching Harness MUST NOT require a separately installed Node.js, dsh, or package manager, or download runtime dependencies on first launch. Acceptance: launch an installed build on a clean supported computer without those tools.
+- **FR-021**: The desktop product's canonical version MUST equal the bundled dsh package version, including any prerelease suffix. Build and startup checks MUST reject a mismatched bundle before task execution. Acceptance: inspect the release manifest and About view, and attempt to build and launch a deliberately mismatched bundle.
 
 ### Key Entities *(include if feature involves data)*
 
