@@ -21,7 +21,10 @@ Release baseline:
   `bed7eea5325e1108f32ce5228ddd6a5f0f08a499ee42aa7442aea583702f6057`.
 
 Source inspection is not an installed-app conformance test. All end-to-end
-requirements remain release acceptance gates after implementation.
+requirements remain release acceptance gates after implementation. Section 9
+records the user's official-style authentication decision and reconciled Tauri
+transport design; all design questions are resolved, while runtime proof remains
+pending.
 
 ## 1. Desktop stack and supported platform
 
@@ -77,7 +80,12 @@ References: [npm baseline](https://registry.npmjs.org/@deepseek-ai/dsh/0.2.0-rc.
 directory and explicit isolated `DSH_HOME`. Parse the owned child's
 `dsh web: <authenticated URL>` readiness announcement; validate HTTP,
 127.0.0.1 and a nonzero port, retain authentication material only in memory.
-Use a 15-second hard startup deadline with a visible failure and explicit Retry.
+Exchange the validated root token privately in Rust for the upstream signed
+cookie (303 response; redirects disabled), then discard the launch URL. Keep the
+cookie native and in memory. Serve packaged content at `dsh-app://app`, not the
+authenticated localhost URL; inject only non-secret boot data and the narrow
+transport adapter. Use a 15-second hard startup deadline including exchange/boot,
+with visible failure and explicit Retry. See section 9 for forwarding.
 
 **Rationale**: Release `web-startup` supports OS-assigned ports and no browser
 handoff. Release `web-app` announces after Loader settlement and required-entry
@@ -97,7 +105,8 @@ References: release
 
 **Decision**: One app-level runtime owner; native single-instance handling; close
 destroys/closes the window without authorizing app exit. Dock/reopen recreates the
-window at the same authenticated service URL. Always show a native Stay / Stop
+window at the same application origin, reconnecting through the retained native
+service session without starting dsh again. Always show a native Stay / Stop
 and Quit confirmation while a service is alive, even with no windows.
 
 Confirmed quit closes task-capable windows, terminates the owned dsh process
@@ -142,24 +151,41 @@ categorized explanations plus exit status and Retry; never auto-export logs.
 Use private filesystem permissions and distinguish dsh-owned raw reports from
 shell-authored diagnostics. Verify credential masking and retention end to end.
 
-**Alternatives considered**: Shell keychain migration, a new session database,
-or rebuilding task controls duplicates upstream. Merely assuming no telemetry
-because this is a desktop wrapper is insufficient.
+The clarified FR-004 explicitly accepts upstream's existing protection.
+`LocalCredentialProvider` stores plaintext YAML under
+`$DSH_HOME/.credentials.yaml`, creates/replaces the file with `0600` and parent
+directories with `0700`, and checks group/other permission bits before load,
+reload, and writes on macOS. Keep credential operations in upstream Settings
+and the provider; the shell only establishes the private data root. Do not add
+Keychain storage, encryption, or a shell credential API. Same-user processes,
+including agent tools, can read the file; this is an accepted limitation, not
+an isolation guarantee. Test save/replace/remove/relaunch, `0600` permissions,
+rejection of an overly permissive file, and absence of the fixture key from
+history and shell-authored diagnostics.
+
+**Alternatives considered**: Keychain-backed storage or not saving credentials
+were not selected by the user. A shell-owned store would duplicate upstream
+responsibilities. Merely assuming no telemetry because this is a desktop wrapper
+is insufficient.
 
 References: release
 [Web profile](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/bundle/web-app/cordis.patch.yml),
 [home paths](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/util/home-paths/src/index.ts),
+[credential provider](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/credentials/credentials-local/src/index.ts),
+[credential protection and limitations](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/credentials/credentials-local/README.md),
 [user guide](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/docs/user/guide/index.md),
 [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
 
 ## 6. Native authority boundary
 
-**Decision**: No Tauri filesystem, shell-execution or general invoke privileges
-for the localhost Harness page. Run runtime operations and menu actions in Rust;
-privileged local startup views have only narrow retry/status/notice commands.
-Disallow navigation to a different origin in the Harness window and hand
-explicit external HTTP(S) links to the system browser without forwarding the
-service token. Keep upstream authentication and browser-trust checks.
+**Decision**: No Tauri filesystem, shell-execution or general network privileges
+for Harness content. Run runtime operations and menus in Rust. Local startup
+views have narrow retry/status/notice commands; authorized main-frame app content
+gets only the fixed-owned-service transport in section 9. Validate actual native
+WebView identity, frame identity and application origin, not renderer assertions.
+Reject child frames and external origins. Keep navigation at the application
+origin; explicit external HTTP(S) links open in the system browser without any
+service authentication. Preserve upstream authentication and request-trust checks.
 
 **Rationale**: Local Web content executes agent-facing plugins and must not gain
 a second native execution channel. Dynamic localhost ports do not justify broad
@@ -167,7 +193,8 @@ remote-origin capabilities. No renderer bridge is necessary for native menus.
 
 **Alternatives considered**: Allowing `http://127.0.0.1:*` arbitrary native
 shell access, rendering external links in a privileged window, or proxying the
-full upstream RPC through Rust all enlarge authority unnecessarily.
+arbitrary upstream destinations through Rust all enlarge authority unnecessarily.
+The user-approved fixed-service adapter is transport-only, not a business RPC API.
 
 ## 7. Test strategy and unresolved-unknown disposition
 
@@ -182,9 +209,11 @@ macOS tests. Browser-only tests cannot prove installed-app lifetime or closure.
 **Alternatives considered**: Passing upstream unit tests alone or testing only
 development mode does not establish the desktop requirements.
 
-All planning unknowns have a chosen design. Exact dependency toolchain locks,
-signing identity, minimum-OS runner provisioning, dependency closure checks and
-behavioral measurements are implementation/release work, not unresolved choices.
+The original planning unknowns and the FR-025 policy decision now have chosen
+designs. Section 9 records the authorized Tauri transport adaptation. Exact
+dependency locks, signing identity, native adapter conformance, minimum-OS runner
+provisioning, closure checks and behavioral measurements remain implementation/
+release work. No assumption of Electron APIs existing in WKWebView is made.
 If upstream acceptance fails, block release and revisit the baseline/plan;
 do not recreate missing Harness responsibilities in the shell.
 
@@ -231,11 +260,15 @@ adoption record is in [plan](plan.md#official-desktop-alignment-fr-022fr-024).
   [backend-controller.spec.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/tests/backend-controller.spec.ts)
   covers shared concurrent startup, cleanup-before-retry and late readiness failures.
 - **Decision**: Adapt single-owner readiness and retry sequencing to the existing
-  Web CLI stdout handoff at R. Retain the selected timeout and authentication boundary.
+  Web CLI stdout handoff at R. Adopt O's private token exchange, native cookie,
+  application-origin documents and authenticated forwarding under revised FR-025;
+  retain the deadline. Section 9 records the Tauri-specific stream adaptation.
 - **Rationale**: The user selected the Web kernel and Tauri sidecars, not the
   official Electron Desktop Host. A ready port alone is not a usable/authenticated workspace.
 - **Alternatives considered**: Copying Host IPC or replacing the Web profile
-  would reopen FR-018/FR-020; neither is authorized. No native proxy is added.
+  would reopen FR-018/FR-020; neither is authorized. Direct authenticated localhost
+  navigation was superseded by the user's official-style mediation decision; the
+  narrow adapter is permitted without copying Host business/control IPC.
 
 **A2 — Window lifecycle**
 
@@ -283,7 +316,7 @@ adoption record is in [plan](plan.md#official-desktop-alignment-fr-022fr-024).
   Command+Q handlers. Leave task/page shortcuts inside upstream Web content.
 - **Rationale**: FR-023 requires equal menu/keyboard outcomes; the current scope
   does not require contextual Close Page parity or a second shortcut preference
-  store. The Web page must not gain privileged native invocation to imitate O.
+  store. The Web page must not gain general native or shortcut invocation to imitate O.
 - **Alternatives considered**: Porting the configurable Electron shortcut bridge
   adds state and authority outside the existing design. Compare outcomes with
   focused Web content to detect interception instead of assuming WKWebView parity.
@@ -333,4 +366,130 @@ review-owned documentation. Before changing O or R, list affected A1–A6 rows,
 inspect replacement immutable sources, check Web release compatibility, update
 contracts/scenarios only where needed, and invalidate affected previous comparison
 results. Unavailable official runtime/source evidence remains pending and blocks
-an alignment-complete release claim; it is not an unresolved architecture choice.
+an alignment-complete release claim; it is not an unresolved architecture choice
+for the historical official-reference pass. The resolved FR-025 reconciliation follows.
+
+## 9. FR-025 and credential protection reconciliation
+
+### Research tasks and evidence
+
+Inspected immutable R and O sources on 2026-10-06: token/cookie exchange,
+HTTP/WebSocket admission, static serving, credential protection, and official
+shell forwarding. Also inspected Tauri protocol/channel APIs and native
+WKWebView frame metadata. Requests were parallelized; no delegated-agent facility
+was available. No product or upstream runtime tests were executed.
+
+- At R, [BrowserAuth](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/client/connection/src/browser-auth.ts)
+  exchanges a process token on `GET /` for an authority-bound signed cookie.
+  Its signing secret is the dsh-owned `client-connection/browser-session` grant
+  in `.credentials.yaml`. Credential-provider protection is recorded in section 5.
+- R's [admission](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/client/connection/src/rpc-host.ts)
+  checks Host/Origin then the cookie; [Gateway WebSocket admission](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/api/gateway/src/index.ts)
+  uses the same gate. Headers are not client identity. The HTTP
+  `connection/request` hook does not cover WebSocket upgrades.
+- R's [static serving](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/host/frontend-static/src/index.ts)
+  authenticates root/index but leaves non-sensitive static assets public.
+- O's [desktop Host](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop-host/src/index.ts)
+  privately sends the authenticated URL over parent-child IPC.
+  [web-document.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/web-document.ts)
+  implements `authenticateWebHost` and `forwardWebRequest`: native token
+  exchange, cookie attachment, removal of renderer-supplied auth/trust headers,
+  and withholding `Set-Cookie` from the renderer.
+- O's [main.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/main.ts)
+  serves packaged UI at `dsh-app://app` and injects WebSocket cookie/trust
+  headers only for the main window, exact Host destination and app origin.
+  This authenticates an authorized renderer through the shell, not client process
+  identity at the Host.
+- R already exposes [ClientTransportHooks](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/client/connection/src/client/index.ts):
+  `__DSH_TRANSPORT__.fetch` and `openStream`. The
+  [Gateway client](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/api/gateway/src/client/index.ts)
+  uses `connection.rpc.open` when supplied rather than creating a browser
+  WebSocket. Reuse its [stream protocol](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/api/gateway/src/stream-protocol.ts)
+  and Connection recovery semantics; do not create business RPC schemas.
+- Tauri provides [asynchronous URI schemes](https://docs.rs/tauri/latest/tauri/struct.Builder.html#method.register_asynchronous_uri_scheme_protocol)
+  and [ordered channels](https://v2.tauri.app/develop/calling-frontend/#channels).
+  URI-scheme responses have byte bodies, not an Electron streaming-response API.
+  Do not assume custom-scheme handling intercepts browser WebSocket handshakes.
+  Native [WKScriptMessage](https://docs.rs/objc2-web-kit/latest/objc2_web_kit/struct.WKScriptMessage.html)
+  exposes the actual WebView and frame; [WKFrameInfo](https://docs.rs/objc2-web-kit/latest/objc2_web_kit/struct.WKFrameInfo.html)
+  exposes `isMainFrame`, request and security origin.
+
+### Decision: official-style shell mediation adapted to Tauri
+
+**Decision**: The user selected "We do as this official approach." Revised FR-025
+requires loopback bearer authentication with shell-controlled delivery and
+forwarding; it no longer claims to reject another local process possessing valid
+or forged authentication. FR-004 remains upstream plaintext storage with owner-only
+permissions. The previous Phase 0 blocker is resolved by that explicit decision.
+
+1. Keep R, Web profile, sidecars and lifecycle unchanged. Rust consumes the owned
+   child's readiness URL, exchanges the root token with redirects disabled, checks
+   the upstream 303/cookie result, retains cookie and service origin in memory,
+   and discards the launch token URL. Do not use a renderer cookie jar or persist
+   shell copies of upstream credentials.
+2. Serve packaged UI and local views from separate application-origin authorities
+   (`dsh-app://app` and `dsh-app://shell`). Retrieve non-secret boot injections
+   through the authenticated upstream index and preserve the release's boot/module
+   contract; never inject the service URL with token or authentication headers.
+3. Use a small bundled transport shim rather than rebuild the task interface.
+   Its fixed-app-origin Fetch adapter uses the native HTTP bridge for upstream
+   requests, including existing raw upload/download routes. Install that adapter
+   in `__DSH_TRANSPORT__.fetch`; route same-app service fetches through it while
+   leaving external requests outside the authenticated bridge. Packaged assets
+   use the URI-scheme handler. Upstream `openStream` uses the narrow native
+   stream bridge; it must not start a browser WebSocket with credentials.
+4. Native bridge admission validates WKWebView identity, actual main-frame
+   metadata and app origin, notice acknowledgement and current launch/window
+   generation. Reject subframes and non-primary windows before attaching auth.
+   Use a frame-aware WKWebView message handler and main-frame-only bootstrap,
+   not a renderer-supplied label or Tauri window URL alone as proof of frame identity.
+   Return ordered chunks/frames through a private window-scoped channel; no
+   globally broadcast transport events. Main-frame replies contain no auth headers.
+5. Rust HTTP forwarding uses `reqwest`; live streams use a
+   `tokio-tungstenite` connection to R's fixed `/api/remote.mux`. Reuse
+   upstream stream message types/parsers in the shim, preserving multiplexing,
+   uplink/downlink, cancellation and Connection-owned recovery. Forward opaque
+   payloads; do not parse task/workspace business data or invent new methods.
+   Credentials and trust headers are native-controlled. See the runtime contract
+   for destination, redirect, body-size and lifecycle rules.
+6. Native chunked transfer is used for service HTTP bodies/live streams, because
+   the URI-scheme responder alone cannot preserve streaming. Use bounded queues,
+   cancellation and upstream body limits; do not buffer unbounded responses or
+   broadcast data between windows. Custom-scheme static serving does not become
+   a listening proxy or general network-fetch API.
+
+**Rationale**: This adopts O's security policy and user-visible behavior while
+using Tauri/native features and R's existing transport hooks. A narrow adapter
+is now required by FR-025; it does not duplicate dsh-owned tasks, configuration,
+approvals or persistence. A native transport avoids relying on Electron-only
+WebSocket header interception or exposing the cookie to JavaScript.
+
+**Alternatives considered**:
+- Load the authenticated localhost URL directly: superseded by the user's choice;
+  it puts service authentication in the renderer's browser session.
+- Copy Electron `protocol.handle`/`webRequest` APIs or switch to Electron:
+  incompatible with the approved Tauri shell.
+- Grant the renderer generic HTTP/WebSocket plugin access or a secret header:
+  unnecessarily exposes destination choice or credentials.
+- Create a new Host API, second agent engine, generic proxy or credential store:
+  outside FR-018 and unnecessary; reuse the Web carrier and transport hooks.
+- Strict process-identity isolation: not selected; official bearer authentication
+  does not provide it, particularly with same-user-readable signing secrets.
+
+### Threat boundary and validation status
+
+Ordinary unauthenticated local clients cannot use session/task/approval APIs;
+direct connections from other computers cannot reach the loopback service.
+Unauthorized WebViews, origins and child frames must not use the native bridge.
+Non-sensitive static resources may remain public locally. Same-user credential
+theft, cookie forgery using the upstream signing secret, privileged attackers,
+and compromise of authorized app code are outside the isolation guarantee.
+Do not test these excluded attacks as expected denials or claim a sandbox.
+
+Design gates pass; implementation/conformance evidence is pending. Before release,
+prove actual native frame validation, authenticated HTTP and WebSocket paths,
+stream ordering/cancellation/backpressure, binary/upload/download fidelity,
+no secret in renderer state, and close/reopen generation handling. A missing
+platform capability or failed test blocks release and requires design review,
+not a silent fallback to direct authenticated localhost navigation. Phase 1
+contracts and quickstart carry these tests and the accepted credential limitation.

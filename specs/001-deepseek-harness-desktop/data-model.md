@@ -9,11 +9,20 @@ release; do not migrate or mirror upstream records in the shell.
 | Entity | Conceptual fields | Relationships and validation |
 |--------|-------------------|------------------------------|
 | Workspace | id, directory, displayName, availability | Has sessions; execution requires an accessible selected directory; replacement requires explicit confirmation |
-| Model Connection | id, model/provider, destination, credential reference/value, readiness | Used by tasks; credentials are private, concealed and excluded from history/shell diagnostics; removal blocks dependent new work |
+| Model Connection | id, model/provider, destination, credential reference/value, readiness | Upstream plaintext credential file with owner-only macOS permissions is accepted; no shell credential store; settings conceal values and history/shell diagnostics exclude them; removal blocks dependent new work |
 | Session | id, workspaceId, title, createdAt, lastActivityAt, messages, tasks | Belongs to one workspace; at most one active task per session; unavailable directory still permits history reading |
 | Task | id, sessionId, request, executionState, actions, result/interruption | Request submitted once; no automatic replay after failure; completed changes are not implicitly undone by Stop |
 | Permission Decision | id, taskId, action, target, status, explicitDecision | Pending/allowed/denied; no implicit allow from dismissal, close, relaunch or recovery |
 | Message / Action record | upstream id/order, task association, content, outcome | Ordered durable session history; secrets excluded from ordinary presentation |
+
+### Upstream credential records
+
+`DSH_HOME/.credentials.yaml` is dsh-owned plaintext YAML. Upstream creates/replaces
+it at `0600` and rejects group/other permission bits on macOS; the shell creates
+its private data root at `0700`. Credential reference values and the distinct
+`client-connection/browser-session` signing-secret grant remain upstream-managed.
+The shell never edits or mirrors these records. Same-user processes, including
+agent tools, can read them; there is no encryption or process-isolation claim.
 
 ### Task presentation states
 
@@ -61,7 +70,8 @@ Canonical versions are distinct from any numeric Apple plist encoding.
 ### Runtime Instance
 
 Fields: launch generation, owned launcher PID, process-group ID, owner pipe,
-state, optional in-memory authenticated URL, optional sanitized failure category.
+state, optional validated service origin, optional transient launch-token URL,
+optional in-memory service cookie, optional sanitized failure category.
 One instance per application; never adopt a service merely because a port responds.
 
 States:
@@ -74,7 +84,26 @@ States:
 - `stopping` remains visible until owned processes have exited; escalation is
   allowed but a successful quit cannot be reported with live owned dsh.
 
-The URL contains authentication material; it is never persisted or logged.
+`starting` includes private token exchange and non-secret boot preparation; a
+readiness announcement alone does not make this instance `ready`. Discard the
+launch-token URL after exchange. Neither it nor the cookie may be persisted,
+logged, returned to the renderer, or placed in a WebView cookie store. Upstream's
+signing-secret record is separate from these shell-owned transient values.
+Invalidate the cookie and all transport handles on service-generation change.
+
+### Authenticated Transport Session
+
+Fields: runtime generation, current primary WebView identity, native main-frame
+origin, acknowledged notice revision, window generation, opaque request/stream
+handles, bounded pending transfer state. The Rust owner holds authentication;
+handles authorize no other window or destination and reveal no cookie.
+
+`inactive -> attached -> detached`: attach only to the authorized main frame at
+`dsh-app://app` after notice/readiness; detach on window close or navigation.
+Detaching aborts renderer transfers and drops streams, not dsh tasks or approvals.
+Reopening creates new window-scoped handles using the same ready service cookie.
+Late chunks/callbacks and stale handles are rejected. Runtime failure/quit
+invalidates every attached transport and discards native authentication.
 
 ### Window State
 
@@ -115,3 +144,7 @@ Quit Decision suffice for FR-023.
 5. Only explicit quit confirmation authorizes stopping a healthy service.
 6. Recovery launches a new service only after owned predecessor cleanup and does
    not submit messages or resolve approvals.
+7. The renderer never owns the service launch token/cookie. HTTP and live streams
+   use frame-aware, fixed-owned-service forwarding; no general network authority.
+8. Unauthenticated local clients cannot use session/task/approval APIs, but public
+   static resources and same-user credential-compromise limitations are accepted.

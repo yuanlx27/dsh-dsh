@@ -3,8 +3,10 @@
 ## Boundary
 
 The product exposes a macOS window, native application commands and upstream
-dsh Web UI. It does not expose a new task API. dsh retains its authenticated
-fetch/SSE/RPC transport, state, storage and permission semantics.
+dsh Web UI at `dsh-app://app`. It does not expose a new task API. Rust mediates
+authenticated HTTP/live-stream transport; dsh retains protocol, state, storage
+and permission semantics. The local startup/notice/error authority is separate
+at `dsh-app://shell`.
 
 ## User commands
 
@@ -47,7 +49,8 @@ reported when reopened. Persisted history remains dsh-owned and recoverable.
 ## Harness user surface
 
 The supported release must supply FR-003–FR-009 and FR-011–FR-013 end to end:
-masked model credentials; workspace selection; session creation and history;
+masked model credentials with upstream plaintext, owner-only storage under
+FR-004; workspace selection; session creation and history;
 single active task per session; streamed responses/actions; allow/deny approvals;
 Stop acknowledgement; explicit recovery and confirmed unavailable-directory
 replacement. Workspace changes during active work must use upstream's safe
@@ -60,23 +63,39 @@ points without modifying task or permission behavior.
 
 ## Security boundary
 
-Harness Web content receives no native shell/filesystem/general invoke
-capabilities. Local startup/notice/failure content can call only narrowly scoped
-shell status/retry/acknowledgement actions; validate the caller window and
-current local origin and define application-command ACLs explicitly.
-Native menu actions do not depend on a renderer.
+Harness content receives no native shell/filesystem/general network authority.
+Only the current authorized application main frame may use the narrow HTTP/live-
+stream adapter in the [runtime contract](runtime-bundle.md#authenticated-transport).
+Check actual native WebView/frame identity, application origin, notice and launch/
+window generations before forwarding. Reject external pages, other windows,
+child frames and stale handles. Do not trust a caller-supplied label or main
+window URL as proof of the calling frame. Use a frame-aware WKWebView handler;
+local status/retry/notice commands remain separately scoped. Native menus do not
+depend on a renderer.
 
-Restrict main-frame navigation to the exact runtime origin; deny file/data and
-unapproved origins. Explicit external HTTP(S) links open in the system browser,
-never with the service authentication token. Test attempted native invocation
-from Harness content, external content and child frames. Retain upstream
-authentication and trust checks.
+Main-frame navigation stays at the application origin; deny file/data and
+unapproved origins. Explicit external HTTP(S) links open in the system browser
+without service token/cookie. Rust owns the token exchange and cookie; no auth
+value appears in page URLs, boot data, renderer cookie jars or IPC results.
+
+The service remains loopback bearer-authenticated, not process-identity-bound.
+Unauthenticated local session/task/approval HTTP and WebSocket requests are
+rejected. Public non-sensitive static assets may remain accessible locally.
+Same-user credential theft/forged cookies, privileged attackers and compromised
+authorized application code are outside the isolation guarantee. No sandbox or
+isolation from agent tool processes is claimed.
 
 ## Official reference and intentional differences
 
 The [plan alignment matrix](../plan.md#official-desktop-alignment-fr-022fr-024)
 records A1–A6 against immutable O, separately from shipped R. This contract
-preserves the chosen architecture; it does not expose official Electron IPC.
+preserves the chosen architecture; it adapts authentication/forwarding to Tauri
+without exposing general Electron IPC.
+
+- **A1 / FR-025**: Adopt native cookie ownership, packaged app-origin UI and
+  authenticated forwarding. Tauri's frame-aware HTTP/stream bridge replaces
+  Electron protocol forwarding/WebSocket header interception; task APIs and
+  permission behavior remain upstream-owned.
 
 - **A2**: Official close hides and retains its document. Product close destroys
   the window and recreates it on reopen. Service/task/approval continuity is
@@ -86,7 +105,7 @@ preserves the chosen architecture; it does not expose official Electron IPC.
   status. The extra idle prompt is intentional; no task inspector is added.
 - **A4**: Official Close Page is contextual/configurable. Product Close Window
   is the explicit native command/Command+W. Upstream page/task shortcuts remain
-  upstream-owned; no privileged renderer bridge or native shortcut store is added.
+  upstream-owned; no native shortcut bridge or shortcut store is added.
 - **A5**: Official fatal recovery can include reports/plugin repair. Product
   provides categorized error views and explicit Retry after cleanup, with no raw
   secret-bearing diagnostics, report export, plugin repair or automatic task replay.
@@ -111,3 +130,13 @@ alignment result; use the [quickstart protocol](../quickstart.md#official-deskto
   authorize a new shutdown decision.
 - Forced shell/service exits retain persisted history, show interruption and
   never approve or replay pending work.
+- Authorized app flows work through native HTTP/live-stream forwarding; denied
+  windows/origins/frames cannot obtain authentication or use the bridge. Direct
+  unauthenticated local API/stream clients and another computer fail as specified
+  by SC-010; public assets and stolen/forged bearer credentials are not expected
+  to be denied solely by process identity.
+- Close/reopen detaches/recreates renderer transport handles without stopping
+  dsh work; stale callbacks and frames cannot attach to the new window.
+- Credential save/replace/remove/relaunch retain upstream behavior; the file is
+  `0600`, overly permissive files are rejected, and fixture keys are absent from
+  saved conversations and shell-authored diagnostics.

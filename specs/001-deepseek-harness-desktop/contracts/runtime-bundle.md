@@ -61,7 +61,10 @@ Private, Rust-controlled launcher inputs:
 - owner-liveness pipe, owned process group and captured stdout/stderr.
 
 No untrusted arbitrary executable/CLI argument is accepted from Web content.
-Set private directory/file permissions. Remove inherited Node injection
+Set the app-private data root to `0700`. Leave dsh's plaintext credential store
+upstream-owned: its `.credentials.yaml` writes use `0600` and overly permissive
+files are rejected on macOS. Do not add encryption, Keychain migration or a
+shell model-credential API. Remove inherited Node injection
 variables such as `NODE_OPTIONS` and `NODE_PATH`; do not inherit model keys or
 product telemetry endpoints accidentally. Preserve the ordinary environment
 needed by user-approved project commands rather than pretending bundled Node
@@ -92,11 +95,61 @@ Only accept readiness from the current launch generation. Cap line size at
 or persist the URL. A malformed announcement, child exit or 15-second deadline
 produces a sanitized failure and explicit Retry after cleanup.
 
-Use the authenticated URL for the Web view and retain the release's own
-connection/trust protocol. A ready announcement proves server initialization,
-not successful model credentials or task readiness. A blank page, failed
-navigation or unusable connection must become an actionable error rather than
-an indefinitely blank window.
+Do not load the authenticated URL in the WebView. Rust exchanges its root token
+privately with redirects disabled; require the upstream 303 response and valid
+service cookie, then discard the token URL. Keep the cookie native and transient;
+never put it in renderer state or a WebView cookie jar. Retrieve the authenticated
+index's non-secret boot injections for the packaged app-origin interface, retaining
+R's boot/module protocol. Complete this within the startup deadline. A server
+announcement does not prove connection/model/task readiness; failed exchange,
+boot or connection produces an actionable sanitized error.
+
+## Authenticated transport
+
+The main document and packaged assets use `dsh-app://app`; local shell views use
+`dsh-app://shell`. URI-scheme serving resolves immutable packaged assets only,
+rejecting path traversal. Service bodies use the native streaming bridge rather
+than assuming Tauri's byte-body URI responder is a streaming HTTP server.
+
+- Admit the actual current primary WKWebView main frame at the app origin only
+  after notice acknowledgement and runtime readiness. Validate native frame
+  metadata, not a renderer-supplied owner/origin. No child-frame, other-window,
+  external-origin or shell-view transport access. Bootstrap only the main frame.
+- Adapt upstream `__DSH_TRANSPORT__.fetch`/`openStream` with the narrow bundled
+  shim. Existing service Fetch consumers, including raw uploads/downloads, use
+  the same fixed-origin HTTP adapter. Leave external fetching outside this
+  authenticated path. No task-specific API, alternate schema or agent logic.
+- HTTP inputs are relative service paths, supported methods, non-auth headers
+  and body chunks. Resolve only against the current owned service origin; reject
+  absolute/authority-changing targets, malformed paths and token query inputs.
+  The native socket target is never renderer-selected. Do not forward requests
+  to another generation, another listening port or any external destination.
+- Rust `reqwest` removes renderer-supplied Host, Origin, Cookie, Authorization,
+  Fetch-Metadata and hop-by-hop headers before adding its native cookie and
+  appropriate same-service trust headers. Automatic redirects are disabled;
+  unexpected service redirects fail closed rather than forwarding credentials.
+  Strip response `Set-Cookie` and connection-level headers; no auth value is
+  returned to renderer code or diagnostics.
+- Rust `tokio-tungstenite` opens only the owned `/api/remote.mux` WebSocket with
+  native cookie/trust headers. The shim uses R's stream protocol/types and
+  `openStream` hook; preserve opaque frames, multiplexing, uplink/downlink,
+  ordering and cancellation. No renderer WebSocket with credentials and no
+  global WebSocket replacement. Connection remains the recovery/generation owner;
+  the adapter must not independently replay operations or restart dsh.
+- Use private, window-scoped ordered replies with bounded queues and byte limits
+  consistent with R, including its 300 MiB buffered API-body default. Preserve
+  binary/multipart data and streaming cancellation; reject oversized input before
+  dispatch. Do not route arbitrary responses through global broadcast events.
+- Closing the window invalidates its handles and cancels its transfers/streams,
+  not agent tasks or approvals. Reopening reattaches to the same native cookie
+  and service generation. Failure/quit invalidates all handles and discards native
+  authentication; stale chunks, callbacks and closed-window operations are denied.
+
+The underlying server still authenticates bearer cookies. Unauthenticated local
+session/task/approval APIs are denied; public non-sensitive assets may be reachable
+locally. A client with stolen/forged auth is not denied by process identity.
+Same-user-readable upstream signing-secret storage is an accepted limitation.
+Direct connections from other computers must fail through loopback binding.
 
 ## Shutdown/ownership
 
@@ -121,3 +174,10 @@ spaces; architecture mismatch; corrupt/missing resources; different desktop/dsh
 prereleases; occupied conventional port; native addon loading; denied app-data
 write; repeated launch; shell crash; signed/notarized execution. Every negative
 case must block unsafe startup and provide a non-secret explanation.
+
+Transport acceptance additionally covers private token exchange, auth-header and
+redirect stripping, exact-owned-destination validation, native frame rejection,
+HTTP and WebSocket denial for unauthenticated local clients, no authentication in
+renderer state, streaming/binary fidelity, bounded queues and stale-handle rejection.
+Run credential lifecycle and `0600`/overly-permissive-file tests separately. These
+are implementation release gates, not evidence of an already tested build.

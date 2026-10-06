@@ -35,6 +35,8 @@ Expected: locked build-time downloads only; matching full desktop/dsh version;
 bundled Node/dsh and complete frontend/native runtime; tests passing; generated
 app/DMG. `runtime:verify` must fail on a deliberately mismatched manifest/package.
 Development success is not a substitute for installed signed-build acceptance.
+Transport tests must cover actual WKWebView frame identity and both native HTTP
+and WebSocket paths; Electron-only tests do not prove the Tauri adaptation.
 
 ## Installed-build scenarios
 
@@ -46,7 +48,7 @@ after installation. Keep model-backed tests online.
 |----------|-------|-------------------|
 | First launch | Open app, dismiss then acknowledge notice, configure key in upstream Settings, select fixture workspace | No task-capable view before acknowledgement; no terminal/browser required; visible workspace and usable composer |
 | Runtime closure | Launch offline with no host runtime, from install path with spaces | Local setup/history UI loads; no runtime fetch; model networking failures are explicit |
-| Credential lifecycle | Save/replace/remove known test key, relaunch; try invalid key | Masked settings; retention/removal work; invalid key yields correction; key absent from history and shell-authored diagnostics |
+| Credential lifecycle | Save/replace/remove fixture key, relaunch; try invalid key; inspect file mode; test overly permissive file while fully quit | Upstream plaintext store retained with `0600`; overly permissive file rejected; masked settings, retention/removal and corrective errors work; key absent from history/shell diagnostics |
 | Controlled task | Summarize fixture project; submit twice rapidly | One submitted request/active task, streamed response/actions and accurate outcome |
 | Approval | Force approval-required file/command action; wait, deny; repeat and allow | Nothing executes before allow; denial never executes; policy/action/target visible |
 | Stop | Stop during streaming and an already-started controlled action | Acknowledgement <=1 second; no new actions; actual in-flight outcome reported, no claim of rollback |
@@ -57,7 +59,10 @@ after installation. Keep model-backed tests online.
 | Missing workspace | Move fixture directory and reopen history; confirm replacement | History readable, execution blocked until explicit valid replacement |
 | Bundle mismatch | Use test build with different dsh/desktop prerelease or damaged resource | Packaging/startup fails before task-capable navigation; supported version and next action shown |
 | Port and repeat launch | Occupy 3080; repeatedly launch/reopen/Retry | Random free loopback port; one runtime generation only |
-| Native boundary | Attempt native shell/filesystem/invoke from Harness or external content; follow external link | Native authority denied; external page not loaded in privileged main view; auth token not forwarded |
+| Shell-mediated access | Inspect app-origin UI, private token exchange and native HTTP/live-stream forwarding; exercise uploads and binary responses | Packaged `dsh-app://app` UI; native cookie ownership; normal upstream flows work without token/cookie in renderer state or WebView cookie jar; byte fidelity and cancellation preserved |
+| Native boundary | Attempt general shell/filesystem/network calls; invoke transport from external page, other window and child frame; follow external link | General authority denied; frame-aware transport checks reject unauthorized callers; external link receives no auth |
+| Service admission | Use a separate unauthenticated browser/client for index, API and WebSocket routes; try direct connection from another computer | Session/task/approval APIs rejected; remote direct connection unavailable; public static resources permitted; no claim of denial for stolen/forged valid authentication |
+| Transport lifetime | Close/reopen during transfer/live stream; send delayed callback or old handle after reopen/retry | Window transfer detaches without stopping task/approval; same ready service reused; stale handles/callbacks denied |
 | Network scope | Capture idle/setup/task traffic with fixture destinations; inspect disabled surfaces | No product telemetry, feedback export or custom plugin installation; project/task data only reaches permitted destinations |
 | Minimum OS | Install/run signed build on macOS 14 Apple Silicon | Runtime/native addons/window/lifecycle work at advertised minimum |
 
@@ -67,6 +72,53 @@ Use [lifecycle contract](contracts/desktop-lifecycle.md) and
 task, Stop, approvals and workspace switching against the same packaged upstream
 version outside the shell, using a separate fixture data root. A mismatch or
 upstream requirement gap blocks release; do not silently implement a second engine.
+
+## Credential and shell-mediated access checks
+
+Use only disposable fixture data. Record statuses and permissions, not credential
+contents, launch-token URLs, Cookie/Set-Cookie values or raw network payloads.
+Set `DSH_TEST_HOME` to the installed app's disposable dsh data root and
+`DSH_TEST_PORT` to its observed numeric listener port; do not obtain them by
+copying a token-bearing URL into shell history.
+
+```sh
+stat -f '%Lp' "$DSH_TEST_HOME/.credentials.yaml"
+curl --noproxy '*' --silent --output /dev/null --write-out '%{http_code}\n' \
+  "http://127.0.0.1:$DSH_TEST_PORT/"
+curl --noproxy '*' --silent --output /dev/null --write-out '%{http_code}\n' \
+  --request POST --header 'Content-Type: application/json' --data '{}' \
+  "http://127.0.0.1:$DSH_TEST_PORT/api"
+curl --noproxy '*' --silent --output /dev/null --write-out '%{http_code}\n' \
+  --http1.1 --max-time 5 --header 'Connection: Upgrade' \
+  --header 'Upgrade: websocket' --header 'Sec-WebSocket-Version: 13' \
+  --header 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
+  "http://127.0.0.1:$DSH_TEST_PORT/api/remote.mux"
+```
+
+Expected: `600` and unauthenticated rejection (`401`) for index, API and stream
+upgrade. Supplying a same-service Origin/Host must not bypass authentication;
+cross-site/invalid Host tests yield `403` at protected API admission. From another
+computer, connecting to the Mac's LAN address at the service port must fail.
+Public non-sensitive assets may return successfully; that is not a failed gate.
+
+Fully quit the app before the permission-negative test. In this disposable
+fixture only, run `chmod 644 "$DSH_TEST_HOME/.credentials.yaml"`, relaunch and
+verify startup rejects the file with a sanitized corrective action. Fully quit,
+restore `chmod 600 "$DSH_TEST_HOME/.credentials.yaml"`, and retry explicitly.
+No script or shell credential migration should repair/rewrite the file silently.
+
+Native fixtures must attempt bridge use from another window, external origin,
+and same-origin child frame; all are rejected before any authenticated dispatch.
+Also test malformed/absolute service targets, another port, injected auth/trust
+headers, redirects, oversized bodies, cancellation, binary/multipart responses,
+stream ordering/uplink/downlink and stale generation/window handles. Verify tokens
+and cookies are absent from renderer boot/state, cookie jar, transport replies
+and shell diagnostics. Authorized main-frame work must still pass SC-003.
+
+Same-user credential theft or cookie forgery is an explicitly accepted limitation,
+not an expected-denial fixture or isolation claim. The shell grants a narrow
+transport capability to authorized app content; compromised authorized code is
+not sandboxed away from the dsh operations that content can request.
 
 ## Official desktop comparison protocol
 
@@ -124,10 +176,10 @@ then judge the product against the planned adaptation, not against identical UI.
 
 | Decision | Controlled actions | Official reference expectation | Product expectation / allowed difference |
 |----------|--------------------|--------------------------------|-------------------------------------------|
-| A1 Launch/readiness | Launch with saved setup; request reopen during startup; separately induce startup failure and select recovery | One Host startup/readiness result, authenticated connection, failed child cleanup before retry | One Web CLI runtime and validated authenticated handoff; local status/Retry and 15-second failure ceiling; no browser or replay. Host IPC/welcome flow is not copied |
+| A1 Launch/readiness | Launch with saved setup; reopen during startup; induce auth/startup failure; inspect HTTP/stream forwarding and renderer-visible state | One Host; native cookie exchange; packaged app-origin UI; authenticated HTTP forwarding and main-window WebSocket header injection; cleanup before retry | One Web CLI runtime; Rust-held cookie; packaged app-origin UI and frame-aware native HTTP/stream adapter using upstream hooks; no Electron header API assumption; 15-second failure ceiling; no replay or renderer cookie |
 | A2 Window lifecycle | Run a fixture task, then test a pending approval; close and reopen in 10 cycles | Main window hidden, same document and Host continue | Window may be recreated; same owned service and dsh session/task/approval continue. Record transient page-state reset separately; no task duplication or permission decision |
 | A3 Quit confirmation | Run the 10-trial matrix below; also test idle quit and late responses/dialog failure using controlled unit fixtures | Active/scheduled or unknown work warns; idle inspected work may quit without a prompt; repeated requests join one decision | Always prompt while service is alive; Stay preserves work, confirmed quit waits for exit; no late or failed dialog grants quit. Extra idle prompt is intentional |
-| A4 Menus/shortcuts | Invoke matching menu/keyboard actions with local content then Harness content focused, including contextual page state | Official Close Page can route through contextual shortcut handling; Quit shares its native decision | Explicit native Close Window/Command+W and Quit/Command+Q have matching outcomes; upstream task/page shortcuts remain upstream-owned; no new customization/native bridge |
+| A4 Menus/shortcuts | Invoke matching menu/keyboard actions with local content then Harness content focused, including contextual page state | Official Close Page can route through contextual shortcut handling; Quit shares its native decision | Explicit native Close Window/Command+W and Quit/Command+Q have matching outcomes; upstream task/page shortcuts remain upstream-owned; no new shortcut customization/native shortcut bridge |
 | A5 Error recovery | Induce spawn/readiness/connection failure and service exit with a known test credential; select explicit recovery | Explicit error/recovery decision and cleanup; report text/path or plugin repair may be offered | Categorized non-secret local explanation/Retry, cleanup before new generation, readable persisted history, no replay. Report export/plugin repair omitted; test key absent from shell diagnostics |
 | A6 Release compatibility | Inspect full versions/About; attempt mismatched prerelease and damaged/missing packaged resource | Shared immutable release/package identity validated by official descriptor/verification tests | Tauri manifest/build/startup checks reject mismatch before task input, full desktop/dsh equality at R; O and R versions intentionally differ. No reference-only runtime upgrade |
 
@@ -179,6 +231,10 @@ or changed behavior invalidates affected prior results until reviewed/retested.
   adapted comparisons pass at release review with no unexplained differences.
 - **SC-009**: run the 10-trial quit matrix above; at most one unresolved dialog,
   every declined quit preserves work, every confirmed quit awaits owned exit.
+- **SC-010**: every unauthorized window/origin/frame fails bridge admission; all
+  unauthenticated session/task/approval request and live-stream routes reject;
+  remote direct connection fails; no auth token/cookie appears in renderer-visible
+  state or shell diagnostics. Run the access checks above on the installed build.
 
 Record app/dsh/Node versions, manifest/build hash, OS/hardware/power conditions,
 fixture IDs, timestamps, owned PID/process-group/listener evidence, sanitized
