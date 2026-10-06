@@ -12,8 +12,9 @@ Release baseline:
   `lib/bin.js`, with version-matched dsh dependencies.
 - Source tag `dsh-v0.2.0-rc.2` points to
   `639ed015397290b3745d163aafe02ffee4aa3f84`.
-- Current master/tag `0.2.1-alpha.1` is newer than npm's current default
-  `0.2.0-rc.2`; do not accidentally mix those sources and artifacts.
+- At the original inspection, master/tag `0.2.1-alpha.1` was newer than the
+  selected npm baseline `0.2.0-rc.2`; this is historical context, not a live
+  latest-version query. Do not mix the reference sources and runtime artifacts.
 - Published tarball integrity:
   `sha512-EAJ3gPNcVt/uv8X19PMm9NkVhWgT7xXNMk0UKCVm+IQ5rpSQOcsMUa0HWlnYYVybKMsccjcRB21vVVsaXQ6IdA==`.
 - Node release index provides `node-v24.21.0-darwin-arm64.tar.gz`, SHA-256
@@ -186,3 +187,150 @@ signing identity, minimum-OS runner provisioning, dependency closure checks and
 behavioral measurements are implementation/release work, not unresolved choices.
 If upstream acceptance fails, block release and revisit the baseline/plan;
 do not recreate missing Harness responsibilities in the shell.
+
+## 8. Official desktop reference supplement
+
+### Scope, baselines and research tasks
+
+This incremental pass addresses FR-022–FR-024 and SC-008/SC-009 only. Sections
+1–7 remain the design baseline: Tauri 2, macOS 14+ Apple Silicon, Node 24.21.0,
+dsh 0.2.0-rc.2, two sidecars, one app-owned Web service, recreated windows,
+conservative quit confirmation, and no duplicate Harness state.
+
+- **O (official behavioral reference)**: repository commit
+  `5badb15009ae1756c3afe0ae0cef1faafc290ccc`, inspected 2026-10-06 through the
+  GitHub tree and immutable raw-source URLs. Its `apps/desktop/package.json`
+  declares `0.2.1-alpha.1` and an Electron shell.
+- **R (shipped runtime source)**: commit
+  `639ed015397290b3745d163aafe02ffee4aa3f84`, published dsh `0.2.0-rc.2`.
+  O is not substituted for R, and no runtime upgrade or new dependency is selected.
+- Research tasks: identify O's launch/readiness and close/reopen behavior;
+  identify O's quit and menu/shortcut decision rules; identify O's recovery and
+  immutable release validation. Downloads for these tracks were parallelized.
+  No delegated research-agent facility was available; findings are direct
+  source inspection, not delegated-agent output or executed upstream tests.
+
+Unknowns resolved by this pass: reference identity, hide-versus-recreate window
+semantics, task-aware-versus-conservative quit policy, contextual-versus-native
+close routing, recovery diagnostics, and reference/runtime compatibility boundary.
+There are no unresolved design choices; installed-app evidence is pending work.
+
+### Source findings and decisions
+
+All source links in this subsection are pinned to O; filenames and symbols
+allow review without relying on a moving `master` URL. The normative six-row
+adoption record is in [plan](plan.md#official-desktop-alignment-fr-022fr-024).
+
+**A1 — Launch/readiness**
+
+- Evidence: [host-process.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/host-process.ts),
+  `DesktopHostProcess.start`, spawns one bundled child, joins its readiness
+  promise on repeated calls and accepts a validated `ready` event.
+  [main.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/main.ts)
+  authenticates the ready URL before loading workspace services.
+  [backend-controller.spec.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/tests/backend-controller.spec.ts)
+  covers shared concurrent startup, cleanup-before-retry and late readiness failures.
+- **Decision**: Adapt single-owner readiness and retry sequencing to the existing
+  Web CLI stdout handoff at R. Retain the selected timeout and authentication boundary.
+- **Rationale**: The user selected the Web kernel and Tauri sidecars, not the
+  official Electron Desktop Host. A ready port alone is not a usable/authenticated workspace.
+- **Alternatives considered**: Copying Host IPC or replacing the Web profile
+  would reopen FR-018/FR-020; neither is authorized. No native proxy is added.
+
+**A2 — Window lifecycle**
+
+- Evidence: `main.ts`, `createMainWindow` prevents close and hides the main window;
+  `focusPrimaryWindow` shows it or recreates an absent window; macOS
+  `window-all-closed` does not quit. The ordinary close preserves the document and Host.
+- **Decision**: Adapt background lifetime and reopen semantics, retaining our
+  previously selected window destruction/recreation against the same dsh instance.
+- **Rationale**: FR-019 concerns uninterrupted work and approval/session state,
+  not document identity. Our design remains minimal and keeps service lifetime
+  independent of window lifetime. Transient page state may reset on reopen;
+  record that difference and verify users return to the expected dsh session.
+- **Alternatives considered**: Switching to hide-only could preserve more page
+  state but is a redesign not requested here; coupling the child to a window
+  violates FR-019. If acceptance fails, report the failure rather than claiming parity.
+
+**A3 — Quit confirmation**
+
+- Evidence: [quit-confirmation.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/quit-confirmation.ts),
+  `resolveDesktopQuitPrompt` warns on unknown inspection and distinguishes active
+  and scheduled work; `confirm` reuses one pending decision and focuses it.
+  `main.ts` supplies an ownerless native dialog and waits for backend shutdown.
+  [quit-confirmation.spec.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/tests/quit-confirmation.spec.ts)
+  specifies idle/no-Host silent quit, inspection failure warning, joined requests,
+  and ignoring late responses after disposal. These tests were read, not run.
+- **Decision**: Adopt joined confirmation, cancellation, ownerless presentation,
+  unknown-state warning and disposal semantics using native Tauri state. Adapt
+  the predicate: always confirm while the owned service is alive, as already planned.
+- **Rationale**: O can inspect Host task/schedule state; the chosen R Web kernel
+  does not supply that desktop contract. An extra idle confirmation is an intentional
+  user-visible difference, avoiding an inspector or duplicated task records.
+- **Alternatives considered**: Copying Host task inspection or adding a new task
+  protocol would violate simplicity and reopen the kernel decision. Unknown status
+  is not an authorization to quit. Dialog failure also must not authorize shutdown;
+  preserve the service and present a sanitized retryable failure.
+
+**A4 — Menus/shortcuts**
+
+- Evidence: [keyboard.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/keyboard.ts),
+  `sendMenuClose` routes `page.close` to trusted renderer content, while the
+  `shortcutsCloseWindow` handler validates current binding revision/focus before
+  `window.close()`. [keybindings.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/keybindings.ts)
+  owns atomic configurable shortcut preferences. `main.ts` builds native menus.
+- **Decision**: Adapt to shared native Close Window / Command+W and Quit /
+  Command+Q handlers. Leave task/page shortcuts inside upstream Web content.
+- **Rationale**: FR-023 requires equal menu/keyboard outcomes; the current scope
+  does not require contextual Close Page parity or a second shortcut preference
+  store. The Web page must not gain privileged native invocation to imitate O.
+- **Alternatives considered**: Porting the configurable Electron shortcut bridge
+  adds state and authority outside the existing design. Compare outcomes with
+  focused Web content to detect interception instead of assuming WKWebView parity.
+
+**A5 — Error recovery**
+
+- Evidence: [fatal-recovery.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/fatal-recovery.ts),
+  `DesktopFatalRecovery.report` shows one fatal decision, waits boundedly for a
+  report, and provides explicit exit/restart/plugin-disable actions; recovery
+  awaits stop. [startup-error.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/startup-error.ts)
+  serializes nested errors as message text.
+- **Decision**: Adapt explicit recovery and cleanup; retain our fixed non-secret
+  local error categories and Retry, without raw report export or plugin repair.
+- **Rationale**: Copying nested diagnostic text can violate FR-004; custom plugin
+  management is excluded. Existing failure views meet FR-014 without adding
+  report persistence or the official recovery UI.
+- **Alternatives considered**: Verbatim errors, automatic restart or plugin
+  disable would enlarge scope or undermine safety/no-replay. Comparison checks
+  explain these intentional omissions rather than report identical UX.
+
+**A6 — Release compatibility**
+
+- Evidence: [release.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/release.ts),
+  `DesktopRelease` declares one exact shell/dsh version; `parseDesktopRelease`
+  validates immutable release facts. [runtime-tree.ts](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/runtime-tree.ts),
+  `readDesktopRuntime` rejects mismatched shared package versions and
+  `verifyDesktopRuntime` checks expected version and package metadata.
+  [desktop/package.json](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/package.json)
+  establishes the reference package version.
+- **Decision**: Adapt matching immutable version/closure verification to our
+  existing Runtime Manifest and two Tauri sidecars. Adopt exact identity including
+  prerelease; keep R and Node unchanged and preserve numeric Apple metadata mapping.
+- **Rationale**: O's Electron/Host/pnpm metadata is not a replacement for our
+  Tauri manifest; product/dsh equality must hold independently of the reference version.
+- **Alternatives considered**: Upgrading R to match O, copying the whole packaging
+  toolchain or adding auto-updates contradicts this incremental update's scope.
+
+### Evidence status and baseline changes
+
+Source findings above are confirmed by inspection. Compatibility of adopted
+concepts with R and product/official runtime comparisons are **pending**, not
+passing. The six decisions have acceptance mappings in the plan and runnable-at-
+implementation-time comparison instructions in [quickstart](quickstart.md#official-desktop-comparison-protocol).
+
+Do not add a seventh runtime subsystem to store these decisions: they are
+review-owned documentation. Before changing O or R, list affected A1–A6 rows,
+inspect replacement immutable sources, check Web release compatibility, update
+contracts/scenarios only where needed, and invalidate affected previous comparison
+results. Unavailable official runtime/source evidence remains pending and blocks
+an alignment-complete release claim; it is not an unresolved architecture choice.

@@ -23,8 +23,13 @@ fetch/SSE/RPC transport, state, storage and permission semantics.
 Always confirming full quit is deliberate: no Electron-only task-inspection
 service is introduced. A confirmation must mention that running work will stop
 and completed file changes are not undone. It must work without an owner window.
-Once confirmation is accepted, disposal prevents new actions; do not claim to
-undo already executed actions.
+Menu and keyboard routes share the same close/quit handlers; focused Harness
+content must not consume a native command and change its outcome.
+Repeated quit requests focus/join the existing pending decision, not stack dialogs.
+Unknown task status receives the same conservative warning. Dialog failure or
+dismissal never authorizes shutdown: preserve work and show a sanitized next action.
+Once confirmation is accepted, disposal prevents new actions and ignores late
+responses; do not claim to undo already executed actions.
 
 ## Startup and failure views
 
@@ -67,6 +72,29 @@ never with the service authentication token. Test attempted native invocation
 from Harness content, external content and child frames. Retain upstream
 authentication and trust checks.
 
+## Official reference and intentional differences
+
+The [plan alignment matrix](../plan.md#official-desktop-alignment-fr-022fr-024)
+records A1–A6 against immutable O, separately from shipped R. This contract
+preserves the chosen architecture; it does not expose official Electron IPC.
+
+- **A2**: Official close hides and retains its document. Product close destroys
+  the window and recreates it on reopen. Service/task/approval continuity is
+  required; document identity and transient page state are not claimed identical.
+- **A3**: Official Host inspection can suppress an idle prompt. Product always
+  confirms while its service is alive, including zero windows and unknown work
+  status. The extra idle prompt is intentional; no task inspector is added.
+- **A4**: Official Close Page is contextual/configurable. Product Close Window
+  is the explicit native command/Command+W. Upstream page/task shortcuts remain
+  upstream-owned; no privileged renderer bridge or native shortcut store is added.
+- **A5**: Official fatal recovery can include reports/plugin repair. Product
+  provides categorized error views and explicit Retry after cleanup, with no raw
+  secret-bearing diagnostics, report export, plugin repair or automatic task replay.
+
+Review acceptance against these stated differences, not full feature/UI parity.
+Unexplained differences or missing comparative evidence prevent a passing
+alignment result; use the [quickstart protocol](../quickstart.md#official-desktop-comparison-protocol).
+
 ## Required lifecycle acceptance
 
 - Ten close/reopen cycles retain the same launcher/service PID and pending
@@ -74,5 +102,12 @@ authentication and trust checks.
 - Ten confirmed quits leave no owned dsh listener/process; cancel preserves it.
 - Quit and cancellation work with zero windows, active work and pending approval.
 - Repeated launch/reopen/Retry/Quit operations coalesce rather than duplicate.
+- Menu and keyboard close/quit routes agree with both local and Harness content
+  focused; Command+W does not acquire the meaning of an unrelated page action.
+- Ten SC-009 quit trials cover repeated requests, zero windows, pending approval
+  and unknown work status; each has at most one unresolved confirmation, declined
+  quit preserves work, and confirmed quit waits for owned service exit.
+- A failed or dismissed quit dialog and a late response after disposal never
+  authorize a new shutdown decision.
 - Forced shell/service exits retain persisted history, show interruption and
   never approve or replay pending work.

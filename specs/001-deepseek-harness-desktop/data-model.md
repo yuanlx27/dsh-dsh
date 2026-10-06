@@ -88,6 +88,23 @@ it absent without changing runtime state. The app remains available via Dock/men
 One native confirmation at a time. Repeated quit requests focus/join it.
 Cancel returns to the previous runtime/window state. Unknown work state is
 handled conservatively by the same confirmation, without duplicating dsh tasks.
+Menu Quit and Command+Q share this decision. Late dialog responses after shutdown
+begins are ignored; a dialog failure preserves the service rather than granting quit.
+
+## Review-owned alignment records (documentation only)
+
+These records live in the existing plan/research and acceptance reports, not
+application preferences, Runtime Manifest fields or a new runtime database.
+
+| Record | Fields and relationships | Validation |
+|--------|--------------------------|------------|
+| Official Reference Baseline | immutable revision O, source locations, inspection date, declared reference version; linked to shipped runtime baseline R | O and R are distinct identities; a moving URL is not sufficient, and changing O does not upgrade R |
+| Alignment Decision | stable ID A1–A6, behavior area, baseline, source symbols, adopted/adapted/excluded classification, expected outcome, reason/user impact, acceptance IDs | All six FR-022 areas covered; differences explained; constraints take precedence; see plan matrix |
+| Comparison Result | decision ID, O/R and product build, fixture/platform, expected/observed outcomes on each side, difference explanation, evidence links, status | `pending -> passing | failing` only after comparison; source inspection alone is not passing; changed baseline/behavior returns affected results to pending |
+
+No entity for shell-owned task inspection, scheduled-task duplication or
+configurable native shortcuts is introduced. The existing runtime owner and
+Quit Decision suffice for FR-023.
 
 ## Cross-entity invariants
 

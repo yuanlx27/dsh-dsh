@@ -17,6 +17,19 @@ The launcher starts bundled Node with the packaged CLI; it does not add agent
 logic, a task API, a duplicate Web service, or an alternative upstream Desktop
 Host. Node and dsh are both shipped, while only one upstream service is running.
 
+## Official reference boundary
+
+A1/A6 in the [plan alignment matrix](../plan.md#official-desktop-alignment-fr-022fr-024)
+adapt official Host readiness and immutable release verification to this existing
+Web CLI/Tauri contract. The behavioral reference O at
+`5badb15009ae1756c3afe0ae0cef1faafc290ccc` is not the bundled source R at
+`639ed015397290b3745d163aafe02ffee4aa3f84` and is not a new manifest dependency.
+Do not copy O's Electron Host IPC, pnpm/runtime layout or package versions into R.
+
+Comparative acceptance must record the two baselines separately. Reference-only
+changes do not alter the bundle/version gate; a proposed R upgrade needs the
+FR-024 affected-decision review and fresh packaging/behavior evidence.
+
 ## Manifest and version gate
 
 `runtime.lock.json` records the baseline/version/checksums; implementation
