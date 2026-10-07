@@ -11,8 +11,8 @@
     "runtime:prepare": "node scripts/prepare-runtime.mjs",
     "runtime:verify": "node scripts/verify-runtime.mjs",
     "test:packaging": "node --test tests/packaging/*.test.mjs",
-    "tauri:dev": "tauri dev --target aarch64-apple-darwin",
-    "tauri:build": "tauri build --target aarch64-apple-darwin"
+    "tauri:dev": "tauri dev --target aarch64-apple-darwin --features desktop",
+    "tauri:build": "tauri build --target aarch64-apple-darwin --features desktop"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.12.1",

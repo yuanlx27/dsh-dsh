@@ -4,5 +4,6 @@ fn main() {
         Ok("aarch64-apple-darwin"),
         "Only macOS Apple Silicon is supported."
     );
+    #[cfg(feature = "desktop")]
     tauri_build::build();
 }
