@@ -138,6 +138,30 @@ async fn startup_deadline_includes_authentication_and_revokes_the_token() {
     runtime.stop().await.unwrap();
 }
 
+#[tokio::test]
+async fn native_connection_failure_cleans_before_retry_and_rejects_late_failure() {
+    let (_root, runtime) =
+        fixture("echo 'dsh web: http://127.0.0.1:54321/?token=fixture'\nIFS= read -r stop\nexit 0");
+    let first = runtime.start().await.unwrap();
+    runtime
+        .fail(first.generation, Failure::Connection)
+        .await
+        .unwrap();
+    assert_eq!(
+        runtime.state(),
+        State::Failed(first.generation, Failure::Connection)
+    );
+    assert!(first.take_token_url().is_err());
+    let next = runtime.start().await.unwrap();
+    assert!(next.generation > first.generation);
+    assert_eq!(
+        runtime.fail(first.generation, Failure::Connection).await,
+        Err(Failure::Unavailable)
+    );
+    assert_eq!(runtime.state(), State::Starting(next.generation));
+    runtime.stop().await.unwrap();
+}
+
 #[test]
 fn inherited_injection_and_model_environment_is_not_the_command_environment() {
     for name in [

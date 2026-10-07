@@ -184,6 +184,7 @@ type StartReply = oneshot::Sender<Result<Arc<Startup>, Failure>>;
 enum Request {
     Start(StartReply),
     Complete(u64, oneshot::Sender<Result<(), Failure>>),
+    Fail(u64, Failure, oneshot::Sender<Result<(), Failure>>),
     Stop(oneshot::Sender<Result<(), Failure>>),
 }
 enum Event {
@@ -223,6 +224,14 @@ impl Runtime {
         let (tx, rx) = oneshot::channel();
         self.requests
             .send(Request::Complete(generation, tx))
+            .await
+            .map_err(|_| Failure::Unavailable)?;
+        rx.await.map_err(|_| Failure::Unavailable)?
+    }
+    pub async fn fail(&self, generation: u64, category: Failure) -> Result<(), Failure> {
+        let (tx, rx) = oneshot::channel();
+        self.requests
+            .send(Request::Fail(generation, category, tx))
             .await
             .map_err(|_| Failure::Unavailable)?;
         rx.await.map_err(|_| Failure::Unavailable)?
@@ -358,6 +367,18 @@ async fn owner(
                         value.discard_token();
                         state.send_replace(State::Ready(generation)); Ok(())
                     } else { Err(Failure::Unavailable) };
+                    let _ = reply.send(result);
+                }
+                Some(Request::Fail(id, category, reply)) => {
+                    if id != generation || !matches!(*state.borrow(), State::Starting(_) | State::Ready(_)) {
+                        let _ = reply.send(Err(Failure::Unavailable)); continue;
+                    }
+                    if let Some(value) = startup.take() { value.discard_token(); }
+                    state.send_replace(State::Failed(generation, category));
+                    let result = if let Some(p) = process.as_mut() { p.stop().await } else { Ok(()) };
+                    if result.is_ok() { process = None; }
+                    else { state.send_replace(State::Failed(generation, Failure::Cleanup)); }
+                    for waiter in waiters.drain(..) { let _ = waiter.send(Err(category)); }
                     let _ = reply.send(result);
                 }
                 Some(Request::Stop(reply)) => {

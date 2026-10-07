@@ -1,9 +1,10 @@
-# Foundation evidence (partial; staging restored)
+# Foundation evidence
 
-**Status: build-time staging and verification pass; T015 remains incomplete.** T001–T012
-implementation/test-authoring tasks are checked off. T013–T015 and all story/
-installed-distribution tasks remain unchecked. Source completion is not runtime
-qualification. No candidate .app/DMG or native transport has been qualified.
+**Status: T015 foundation checkpoint passes on the current arm64 build host.**
+T001–T015 are complete. This qualifies bundle/version checks, private preferences,
+bounded announcement parsing, native runtime ownership and helper cleanup only.
+Actual dsh Web-profile/authentication, native transport and all installed-app/
+comparative acceptance remain pending. No candidate .app/DMG is qualified.
 
 ## Provenance
 
@@ -20,8 +21,14 @@ qualification. No candidate .app/DMG or native transport has been qualified.
   build-host directory. This is not an installed-user runtime dependency.
 - Frozen runtime lock SHA-256:
   `66c429d2a9d33c25fe341721898c7b2195216fba216c19483907c4788794efc8`.
-- Last completed task commit: `4a4bb40` (T012). Preceding T011: `9f6c33a`;
-  T010: `c50701a`; native-install approval correction: `729300e`.
+- Implementation baseline: T013 `13a5319`, T014 `fca6725`, T012 `4a4bb40`;
+  release-macro correction `6270c19`. This report and additional actual resource
+  probes are committed with T015.
+- Current staged manifest SHA-256:
+  `129dd05bc0803e2db01a66dfa9370393262ac925a7eda446508d292e0af2d065`.
+  Inventory: 26,610 artifacts, including 13 `.node` files and 12 internal symlinks;
+  538 installed production packages, approximately 530 MiB staged dsh tree.
+  This identifies build-time bytes, not final signed distribution.
 
 ## Executed evidence
 
@@ -32,8 +39,11 @@ qualification. No candidate .app/DMG or native transport has been qualified.
 | Production resolution | 608 lock records with exact versions/integrities; `npm ci --omit=dev` installed 538 platform-selected packages | Frozen npm closure; optional other-platform records are not installed |
 | npm native scripts | Default npm 11 skipped scripts; project-scoped `--allow-scripts` was rejected; corrected with version-pinned `allowScripts` entries in runtime/package.json, then clean `npm ci` succeeded | Reviewed spawn-helper/node-pty/koffi/protobufjs scripts permitted; unrelated no-op denied |
 | CLI identity | Verified Node running installed R's `lib/bin.js --version` reports `0.2.0-rc.2` | Actual R version only; no Web/task acceptance |
-| Node packaging tests | 36/36 passed under Node 24.21.0 | Static build/config, inventory and disposable bundle contract fixtures; fake probes are not real installed binary/native-addon evidence |
-| Rust library tests | 3/3 passed | Bundle path/version mapping and preferences privacy/atomic failure/schema/bounds |
+| Node packaging tests | 37/37 passed under Node 24.21.0 | Static build/config/inventory, disposable bundle fixtures and actual bundled native-entry/flock probe; not installed WKWebView evidence |
+| Rust library tests | 10/10 passed in both debug and release profiles | Preferences, errors, environment, coalesced startup, auth-phase deadline, token revocation, generation-safe failure and conservative cleanup/retry |
+| Foundation integration tests | 8/8 passed in both debug and release profiles | T007 schema/atomic write/bounds/parser/timeout/EOF/owned helper cases plus actual native bundle verification |
+| Native bundle gate | Verified actual staged inventory, frozen production versions, bundled Node/CLI and target; copied binaries in a path containing spaces passed native installed-layout mapping; corrupted launcher rejected | Resources shared through a fixture directory alias; not a signed installed .app |
+| Native addons | Bundled Node loaded node-pty, sharp and koffi native entries; upstream system/flock acquired a disposable file lock | Actual build-time production resources; not every optional native module or minimum OS |
 | Clippy | Library and launcher passed with `-D warnings` | Static native checks |
 | Debug launcher build | Succeeded with pinned toolchain/arm64 target | Helper-process execution, not bundled dsh Web |
 | Release launcher build | Succeeded after disabling stripping only for host build dependencies, including in a fresh target directory | Same Rust 1.96.0 and locked dependencies; target release optimization unchanged |
@@ -100,13 +110,45 @@ were rerun and passed. No security controls were disabled; no debug binary was
 substituted, no dependency version changed and no shared cache was deleted.
 Other feature tasks were not advanced during this investigation.
 
+## Runtime owner checkpoint
+
+Concurrent starts join one service generation, with announcement distinct from
+successful native auth/boot completion. A 15-second deadline remains active after
+the announcement; deterministic clock advancement verifies failure, token
+revocation, rejected late completion and explicit cleanup-before-retry. Model-key,
+Node injection and known telemetry environment variables are excluded without
+removing ordinary PATH/HOME/SHELL/SSH/Git command environment.
+
+Unexpected normal service exit is reported only after the launcher confirms group
+cleanup (private exit code 2). Launcher signal death or unproven cleanup retains a
+failed ownership guard and blocks both competing startup and successful quit.
+The signal-death regression first failed against T013, then passed after T014.
+A native generation-scoped failure entry point covers later auth/boot errors;
+cleanup precedes retry and a late failure cannot invalidate a newer generation.
+Raw child stdout/stderr are discarded without copying them into shell diagnostics;
+Startup token data has no Debug/Serialize implementation and failure categories
+contain fixed explanations/actions only. Owner tests use disposable helper output,
+not a claim that dsh Web authentication has already passed.
+
+The full integration resource test took about 41 seconds in the unoptimized test
+profile (two full valid native gates plus corruption rejection). This is not an
+SC-002 measurement. The complete eight-test integration suite passed in about
+4.18 seconds in the optimized release profile against the final staged manifest.
+This still excludes Web startup/auth/UI; installed SC-002 performance must be
+measured separately.
+Initial ad-hoc addon probe attempts had a JavaScript require-shadowing error and
+used an unexported system package root. They were corrected to the documented
+system/flock entry and an actual native lock operation; the successful form is
+now a tracked packaging regression test, not an upstream defect claim.
+
+No unresolved version/ownership failure remains at this foundation checkpoint.
+Missing future Web/native-frame evidence remains explicitly pending, not passing.
+
 ## Still pending
 
-- Final-signed inventory and actual Rust startup bundle verification; actual
-  bundled native-addon loading and path-with-spaces runtime execution. Successful
-  release compilation/staging alone does not qualify these gates.
-- T013 bounded readiness/one-generation owner and T014 failure/retry transitions;
-  T007 integration suite cannot pass before their implementation.
+- Final-signed inventory, complete installed-app native-addon loading and actual
+  installed path-with-spaces execution. Build-time/native-layout probes alone do
+  not qualify these distribution gates.
 - T022 validated Web overlay and real Web launch/auth/boot/transport/native-frame
   feasibility; no readiness alone is represented as authenticated readiness.
 - Installed ad-hoc app/DMG, clean/offline/minimum-OS checks, owner crash and full

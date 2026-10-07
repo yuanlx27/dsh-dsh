@@ -1,4 +1,4 @@
-use deepseek_harness_desktop::{preferences, runtime};
+use deepseek_harness_desktop::{bundle, preferences, runtime};
 use std::{
     fs,
     io::{Read, Write},
@@ -7,6 +7,32 @@ use std::{
     process::{Command, Stdio},
     time::{Duration, Instant},
 };
+
+#[tokio::test]
+async fn staged_and_space_containing_native_layouts_pass_the_real_bundle_gate() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+    let staged = bundle::BundlePaths::staged(root);
+    let manifest = bundle::verify(&staged)
+        .await
+        .expect("Prepare the locked runtime before foundation tests.");
+    assert_eq!(manifest.dsh_version, "0.2.0-rc.2");
+    assert_eq!(manifest.node_version, "24.21.0");
+    let temp = tempfile::Builder::new()
+        .prefix("native app layout with spaces ")
+        .tempdir()
+        .unwrap();
+    let binaries = temp.path().join("Contents/MacOS");
+    fs::create_dir_all(&binaries).unwrap();
+    fs::copy(staged.node(), binaries.join("node")).unwrap();
+    fs::copy(staged.launcher(), binaries.join("dsh")).unwrap();
+    let resources = temp.path().join("Contents/Resources");
+    // The immutable resource tree is shared for this layout probe, not an installed distribution.
+    std::os::unix::fs::symlink(&staged.resources, &resources).unwrap();
+    let installed = bundle::BundlePaths::installed(resources, binaries);
+    assert_eq!(bundle::verify(&installed).await.unwrap(), manifest);
+    fs::write(installed.launcher(), b"corrupt").unwrap();
+    assert!(bundle::verify(&installed).await.is_err());
+}
 
 #[test]
 fn private_preferences_roundtrip_and_schema_rejection() {
