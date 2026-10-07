@@ -8,12 +8,12 @@ release; do not migrate or mirror upstream records in the shell.
 
 | Entity | Conceptual fields | Relationships and validation |
 |--------|-------------------|------------------------------|
-| Workspace | id, directory, displayName, availability | Has sessions; execution requires an accessible selected directory; replacement requires explicit confirmation |
-| Model Connection | id, model/provider, destination, credential reference/value, readiness | Upstream plaintext credential file with owner-only macOS permissions is accepted; no shell credential store; settings conceal values and history/shell diagnostics exclude them; removal blocks dependent new work |
-| Session | id, workspaceId, title, createdAt, lastActivityAt, messages, tasks | Belongs to one workspace; at most one active task per session; unavailable directory still permits history reading |
-| Task | id, sessionId, request, executionState, actions, result/interruption | Request submitted once; no automatic replay after failure; completed changes are not implicitly undone by Stop |
+| Workspace | id, directory, displayName, availability | Has sessions; availability and execution access are dsh-owned; canonical path remains upstream-owned and no shell directory replacement or session migration is provided |
+| Model Connection | id, model/provider, destination, credential reference/value, readiness | Upstream plaintext credential file with owner-only macOS permissions is accepted; no shell credential store; settings concealment is upstream-owned; no shell credential injection into history or disclosure in shell diagnostics; arbitrary upstream output is not shell-redacted; removal blocks dependent new work |
+| Session | id, workspaceId, title, createdAt, lastActivityAt, messages, tasks | Workspace association is dsh-owned; at most one active task per session; history access and continuation with an unavailable directory follow dsh; no shell reassociation |
+| Task | id, sessionId, request, executionState, actions, result/interruption | Submission identity/admission/queueing are dsh-owned; identical text is not shell-deduplicated; no shell-induced duplication or automatic replay; completed changes are not implicitly undone by Stop |
 | Permission Decision | id, taskId, action, target, status, explicitDecision | Pending/allowed/denied; no implicit allow from dismissal, close, relaunch or recovery |
-| Message / Action record | upstream id/order, task association, content, outcome | Ordered durable session history; secrets excluded from ordinary presentation |
+| Message / Action record | upstream id/order, task association, content, outcome | Ordered durable session history owned by dsh; no shell credential injection, blanket output redaction or history rewriting; service authentication remains native-only |
 
 ### Upstream credential records
 
@@ -21,7 +21,12 @@ release; do not migrate or mirror upstream records in the shell.
 it at `0600` and rejects group/other permission bits on macOS; the shell creates
 its private data root at `0700`. Credential reference values and the distinct
 `client-connection/browser-session` signing-secret grant remain upstream-managed.
-The shell never edits or mirrors these records. Same-user processes, including
+The shell never edits or mirrors these records. Model calls resolve credentials
+per operation, including later calls in an existing task; changing credentials
+does not cancel already-started work. Missing credentials prevent subsequent
+dependent calls, and settings follow upstream credential-availability events.
+Removal shadowed by a read-only source is refused, not reported as success.
+Same-user processes, including
 agent tools, can read them; there is no encryption or process-isolation claim.
 
 ### Task presentation states
@@ -99,17 +104,25 @@ handles, bounded pending transfer state. The Rust owner holds authentication;
 handles authorize no other window or destination and reveal no cookie.
 
 `inactive -> attached -> detached`: attach only to the authorized main frame at
-`dsh-app://app` after notice/readiness; detach on window close or navigation.
-Detaching aborts renderer transfers and drops streams, not dsh tasks or approvals.
-Reopening creates new window-scoped handles using the same ready service cookie.
-Late chunks/callbacks and stale handles are rejected. Runtime failure/quit
+`dsh-app://app` after notice/readiness. Normal close hides the retained document
+without detaching its authorized transport or invalidating its handles; show
+reuses the same document/window generation. Detach on actual destruction,
+document replacement/navigation or page failure. Detaching aborts renderer
+transfers/streams, not dsh tasks/approvals. A recreated document receives new
+window-scoped handles using the ready service cookie when available.
+Late chunks/callbacks and stale handles from invalidated generations are rejected. Runtime failure/quit
 invalidates every attached transport and discards native authentication.
 
 ### Window State
 
-`absent | local-startup | safety-notice | harness | failure`.
-Opening/reopening while ready does not spawn a runtime. Closing a window makes
-it absent without changing runtime state. The app remains available via Dock/menu.
+Document state: `absent | local-startup | safety-notice | harness | failure`;
+retained-window visibility: `visible | hidden`.
+Opening/reopening while ready does not spawn a runtime. Normal close changes
+visibility to hidden, preserving document identity, draft, selected conversation,
+scroll context and authorized transport; reopen shows/focuses the same window.
+Actual destruction/page failure may produce absence/recreation with no unsaved-
+context guarantee. Crash/full quit recovery uses dsh persistence, not a shell
+page-state store. The app remains available via Dock/menu.
 
 ### Quit Decision
 
@@ -119,6 +132,10 @@ Cancel returns to the previous runtime/window state. Unknown work state is
 handled conservatively by the same confirmation, without duplicating dsh tasks.
 Menu Quit and Command+Q share this decision. Late dialog responses after shutdown
 begins are ignored; a dialog failure preserves the service rather than granting quit.
+This decision concerns the entire owned service and all of its sessions/workspaces,
+not only the visible conversation. Workspace switching and its task consequences
+are dsh-owned; no separate switch decision, session inspector or bulk-stop entity
+is introduced.
 
 ## Review-owned alignment records (documentation only)
 

@@ -104,9 +104,13 @@ References: release
 ## 4. Lifetime, shutdown and crash recovery
 
 **Decision**: One app-level runtime owner; native single-instance handling; close
-destroys/closes the window without authorizing app exit. Dock/reopen recreates the
-window at the same application origin, reconnecting through the retained native
-service session without starting dsh again. Always show a native Stay / Stop
+hides and retains the primary window/document without authorizing app exit.
+Dock/reopen shows and focuses that document at the same application origin with
+its existing native service session, without restarting dsh or resetting draft,
+selected conversation or scroll position solely because of close/reopen.
+Actual destruction/page failure can require recreation; unsaved context after
+crash/full quit/page failure is not guaranteed. CHK038 reviewer approval
+supersedes the former normal-close destruction/recreation decision. Always show a native Stay / Stop
 and Quit confirmation while a service is alive, even with no windows.
 
 Confirmed quit closes task-capable windows, terminates the owned dsh process
@@ -150,6 +154,10 @@ explicitly warn they can contain configuration/credentials. Show fixed,
 categorized explanations plus exit status and Retry; never auto-export logs.
 Use private filesystem permissions and distinguish dsh-owned raw reports from
 shell-authored diagnostics. Verify credential masking and retention end to end.
+The later CHK032 reviewer clarification bounds this guarantee to upstream settings
+protection and non-disclosure by shell-generated content. Arbitrary dsh/tool/model
+output is not subject to a new shell redaction or history-rewriting guarantee;
+service-token/cookie confidentiality and no-extra-destination constraints remain.
 
 The clarified FR-004 explicitly accepts upstream's existing protection.
 `LocalCredentialProvider` stores plaintext YAML under
@@ -223,7 +231,8 @@ do not recreate missing Harness responsibilities in the shell.
 
 This incremental pass addresses FR-022–FR-024 and SC-008/SC-009 only. Sections
 1–7 remain the design baseline: Tauri 2, macOS 14+ Apple Silicon, Node 24.21.0,
-dsh 0.2.0-rc.2, two sidecars, one app-owned Web service, recreated windows,
+dsh 0.2.0-rc.2, two sidecars, one app-owned Web service, retained hidden windows
+under the later CHK038 reviewer decision,
 conservative quit confirmation, and no duplicate Harness state.
 
 - **O (official behavioral reference)**: repository commit
@@ -275,15 +284,16 @@ adoption record is in [plan](plan.md#official-desktop-alignment-fr-022fr-024).
 - Evidence: `main.ts`, `createMainWindow` prevents close and hides the main window;
   `focusPrimaryWindow` shows it or recreates an absent window; macOS
   `window-all-closed` does not quit. The ordinary close preserves the document and Host.
-- **Decision**: Adapt background lifetime and reopen semantics, retaining our
-  previously selected window destruction/recreation against the same dsh instance.
-- **Rationale**: FR-019 concerns uninterrupted work and approval/session state,
-  not document identity. Our design remains minimal and keeps service lifetime
-  independent of window lifetime. Transient page state may reset on reopen;
-  record that difference and verify users return to the expected dsh session.
-- **Alternatives considered**: Switching to hide-only could preserve more page
-  state but is a redesign not requested here; coupling the child to a window
-  violates FR-019. If acceptance fails, report the failure rather than claiming parity.
+- **Decision**: Adopt official normal-close hide/retain and reopen show/focus
+  semantics after explicit CHK038 reviewer approval. Retain document and native
+  transport authority while hidden; dsh instance/work/approvals remain unchanged.
+- **Rationale**: Preserves draft, selection and scroll context without a separate
+  persistence mechanism. Native Tauri hide/show replaces the former normal-close
+  destruction/recreation design; service lifetime remains application-owned.
+- **Alternatives considered**: The former destroy/recreate policy could lose
+  transient state and is superseded. Recreation remains permitted for genuinely
+  absent/failed documents, without guaranteeing unsaved context after crash,
+  full quit or page failure. Runtime parity still requires comparison evidence.
 
 **A3 — Quit confirmation**
 

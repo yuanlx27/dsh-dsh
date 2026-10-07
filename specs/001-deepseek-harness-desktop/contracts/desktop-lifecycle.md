@@ -12,8 +12,8 @@ at `dsh-app://shell`.
 
 | Input | Required behavior |
 |-------|-------------------|
-| Launch / Dock reopen / Open Workspace Window | Create/focus the primary window; join existing startup or reconnect to the same ready dsh instance |
-| Window close / Command+W | Close window only; no quit, service restart, task Stop or permission decision |
+| Launch / Dock reopen / Open Workspace Window | Show/focus the retained primary window; create only if genuinely absent/failed; join existing startup or same ready dsh instance |
+| Window close / Command+W | Hide/retain primary window and document, draft, selection, scroll and authorized transport; no quit, service restart, task Stop or permission decision |
 | Application Quit / Command+Q, including no windows | Show native Stay / Stop and Quit confirmation when service is alive; one dialog at a time |
 | Stay / dialog dismissal | Preserve the service, active work and current workspace; never authorize shutdown |
 | Stop and Quit | Disable/close task-capable windows, stop owned process tree and wait for exit before completing application quit |
@@ -24,7 +24,9 @@ at `dsh-app://shell`.
 
 Always confirming full quit is deliberate: no Electron-only task-inspection
 service is introduced. A confirmation must mention that running work will stop
-and completed file changes are not undone. It must work without an owner window.
+across all sessions/workspaces served by the owned instance, not just the visible
+session, and completed file changes are not undone. Stay leaves all work untouched
+by the shell. It must work without an owner window.
 Menu and keyboard routes share the same close/quit handlers; focused Harness
 content must not consume a native command and change its outcome.
 Repeated quit requests focus/join the existing pending decision, not stack dialogs.
@@ -40,6 +42,15 @@ navigation, require acknowledgement of the experimental safety notice covering
 command execution, file changes, absence of isolation guarantees and no undo.
 A declined/dismissed notice never counts as acknowledgement.
 
+Service readiness is not task readiness. After service connection and current
+notice acknowledgement, missing credentials or an invalid/unselected workspace
+leave setup incomplete while settings and available history remain accessible.
+Task readiness additionally requires a valid workspace and configured credentials
+not currently reported unavailable/rejected. Follow FR-002: no separate shell-owned
+online credential check or promise of continuous model availability. Rejected
+credentials require correction; application readiness remains independent of
+upstream task state and does not itself cancel work.
+
 Failure states distinguish invalid/incompatible bundle, launch failure,
 startup timeout, connection failure and unexpected service exit. Each includes
 a fixed user-readable explanation and next action; raw stdout/stderr and tokens
@@ -52,14 +63,48 @@ The supported release must supply FR-003–FR-009 and FR-011–FR-013 end to end
 masked model credentials with upstream plaintext, owner-only storage under
 FR-004; workspace selection; session creation and history;
 single active task per session; streamed responses/actions; allow/deny approvals;
-Stop acknowledgement; explicit recovery and confirmed unavailable-directory
-replacement. Workspace changes during active work must use upstream's safe
-confirmation path. Any upstream gap blocks release instead of authorizing a
+Stop acknowledgement; explicit service recovery and upstream-owned history/
+continuation behavior when a workspace directory is unavailable. No directory
+replacement, session migration or reassociation mechanism is added by the shell.
+Workspace switching, any upstream prompts and task continuation/stopping follow
+dsh even when multiple sessions have work underway. The shell adds no task
+inspection, workspace-switch confirmation or bulk-stop policy. Any upstream gap
+against the remaining agreed requirements blocks release instead of authorizing a
 shell reimplementation.
+
+Workspace validity and per-operation permissions are dsh-owned under FR-005
+and FR-018. Present upstream availability and permission failures; add no shell
+permission scans or separate task-admission policy. Lack of write permission
+alone is not a reason to prohibit read-only analysis. History availability is
+independent of the current directory, and no blanket file-access guarantee is
+made.
+
+Model credential storage/settings concealment and arbitrary tool/model output
+remain dsh-owned under FR-004. The shell never injects saved credentials into
+conversations or shell diagnostics, and does not copy potentially secret-bearing
+raw output into its startup/error views. No blanket upstream-output redaction or
+history rewriting is added. Service tokens/cookies remain native-only under
+FR-025; FR-017 still excludes additional data destinations, telemetry and sync.
+
+Submission acceptance, rejection, queueing, steering and repeat handling remain
+dsh-owned under FR-006. The shell adds no text-based deduplication, task-start
+lock or separate admission policy; forwarding, reconnect and window reopening
+must not duplicate or automatically replay an already-submitted request.
 
 No custom plugin-installation, automatic-update, telemetry or feedback-reporting
 surface is added. A narrow launch overlay disables excluded upstream entry
 points without modifying task or permission behavior.
+
+## Shell accessibility
+
+NFR-001 applies to shell-owned startup, failure/retry, safety-notice and native
+quit-confirmation surfaces. Support keyboard-only operation, visible focus for
+custom controls, dialog focus entry and appropriate restoration, meaningful
+accessible names and non-color-only status/error information. Native or standard
+semantic controls must expose controls, notices and key state changes to VoiceOver.
+Upstream setup/settings, conversations and approvals retain dsh accessibility;
+embedding must not disable upstream keyboard/assistive-technology capability.
+No replacement accessibility layer or unassessed product-wide WCAG claim is added.
 
 ## Security boundary
 
@@ -97,9 +142,11 @@ without exposing general Electron IPC.
   Electron protocol forwarding/WebSocket header interception; task APIs and
   permission behavior remain upstream-owned.
 
-- **A2**: Official close hides and retains its document. Product close destroys
-  the window and recreates it on reopen. Service/task/approval continuity is
-  required; document identity and transient page state are not claimed identical.
+- **A2**: Adopt official hide/retain and show/focus on normal close/reopen.
+  Preserve document identity and prevent closure-induced draft/selection/scroll
+  reset without a separate shell persistence store. Actual destruction/page
+  failure may require recreation; unsaved state is not guaranteed after crash,
+  full quit or page failure. Persisted recovery remains dsh-owned.
 - **A3**: Official Host inspection can suppress an idle prompt. Product always
   confirms while its service is alive, including zero windows and unknown work
   status. The extra idle prompt is intentional; no task inspector is added.
@@ -135,8 +182,12 @@ alignment result; use the [quickstart protocol](../quickstart.md#official-deskto
   unauthenticated local API/stream clients and another computer fail as specified
   by SC-010; public assets and stolen/forged bearer credentials are not expected
   to be denied solely by process identity.
-- Close/reopen detaches/recreates renderer transport handles without stopping
-  dsh work; stale callbacks and frames cannot attach to the new window.
+- Normal close/reopen retains document identity and authorized transport without
+  closure-induced draft/selection/scroll reset or interruption of dsh work.
+  Actual destruction/page replacement/failure invalidates affected handles;
+  recreation requires fresh validated handles and denies stale generations.
 - Credential save/replace/remove/relaunch retain upstream behavior; the file is
   `0600`, overly permissive files are rejected, and fixture keys are absent from
-  saved conversations and shell-authored diagnostics.
+  shell-authored diagnostics/startup views and shell-created conversation content.
+  Arbitrary dsh/tool/model output is not subject to a shell redaction guarantee;
+  service token/cookie confidentiality remains independently required.

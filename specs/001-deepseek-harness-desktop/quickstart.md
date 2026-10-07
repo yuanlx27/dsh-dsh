@@ -48,21 +48,21 @@ after installation. Keep model-backed tests online.
 |----------|-------|-------------------|
 | First launch | Open app, dismiss then acknowledge notice, configure key in upstream Settings, select fixture workspace | No task-capable view before acknowledgement; no terminal/browser required; visible workspace and usable composer |
 | Runtime closure | Launch offline with no host runtime, from install path with spaces | Local setup/history UI loads; no runtime fetch; model networking failures are explicit |
-| Credential lifecycle | Save/replace/remove fixture key, relaunch; try invalid key; inspect file mode; test overly permissive file while fully quit | Upstream plaintext store retained with `0600`; overly permissive file rejected; masked settings, retention/removal and corrective errors work; key absent from history/shell diagnostics |
-| Controlled task | Summarize fixture project; submit twice rapidly | One submitted request/active task, streamed response/actions and accurate outcome |
+| Credential lifecycle | Save/replace/remove fixture key, relaunch; try invalid key; inspect file mode; test overly permissive file while fully quit | Upstream plaintext store retained with `0600`; overly permissive file rejected; upstream settings concealment, retention/removal and corrective errors work; shell does not inject keys into conversation content or expose them in shell diagnostics/startup views; no blanket redaction of arbitrary upstream output; service tokens/cookies remain native-only |
+| Controlled task | Summarize fixture project; separately exercise rapid repeated input, identical text, upstream queued/steered input and reconnect/reopen | User-input admission follows pinned dsh behavior; no shell text deduplication or startup lock; forwarding/reconnect/reopen introduce no repeated submission or automatic replay; streamed response/actions and accurate outcome |
 | Approval | Force approval-required file/command action; wait, deny; repeat and allow | Nothing executes before allow; denial never executes; policy/action/target visible |
 | Stop | Stop during streaming and an already-started controlled action | Acknowledgement <=1 second; no new actions; actual in-flight outcome reported, no claim of rollback |
-| Workspace change | Attempt change while running; cancel, then explicitly stop/leave | Confirmation required; cancel preserves current workspace/work; no silent reassociation |
-| Background | Close with Command+W/close control during task or pending approval; reopen via Dock | Same process and session; no Stop, approval decision or duplicate task |
-| Full quit | Quit from menu/Command+Q with window present and absent; choose Stay then Stop and Quit | Native confirmation works in both cases; Stay preserves service; confirmed quit waits for owned service exit |
+| Workspace change | Switch visible workspace while multiple sessions have work underway; exercise any upstream prompts | Switching and task continuation/stopping match the pinned dsh release; no shell session inspection, extra confirmation or bulk-stop policy |
+| Background | Set draft/selection/scroll context; close with Command+W/close control during task or pending approval; reopen via Dock/repeated launch | Same retained window/document, process and session; no closure-induced draft/selection/scroll reset, transport detach, Stop, approval decision or duplicate task |
+| Full quit | Run work in multiple sessions/workspaces; quit from menu/Command+Q with window present and absent; choose Stay then Stop and Quit | Native warning covers the entire owned dsh service, not only the visible session; Stay leaves all work untouched by the shell; confirmed quit waits for owned service exit without claiming undo |
 | Recovery | Force shell exit, separately force service exit; reopen/retry | Persisted records readable, unresolved task interrupted; pending approval not granted; no replay, old owned runtime cleaned up |
-| Missing workspace | Move fixture directory and reopen history; confirm replacement | History readable, execution blocked until explicit valid replacement |
+| Missing workspace | Move fixture directory, reopen the original session, inspect upstream options; select a new workspace separately, then restore the original directory | History, errors and continuation follow the pinned dsh release; no shell directory replacement, session migration or reassociation; a new workspace does not promise transfer of the original conversation |
 | Bundle mismatch | Use test build with different dsh/desktop prerelease or damaged resource | Packaging/startup fails before task-capable navigation; supported version and next action shown |
 | Port and repeat launch | Occupy 3080; repeatedly launch/reopen/Retry | Random free loopback port; one runtime generation only |
 | Shell-mediated access | Inspect app-origin UI, private token exchange and native HTTP/live-stream forwarding; exercise uploads and binary responses | Packaged `dsh-app://app` UI; native cookie ownership; normal upstream flows work without token/cookie in renderer state or WebView cookie jar; byte fidelity and cancellation preserved |
 | Native boundary | Attempt general shell/filesystem/network calls; invoke transport from external page, other window and child frame; follow external link | General authority denied; frame-aware transport checks reject unauthorized callers; external link receives no auth |
 | Service admission | Use a separate unauthenticated browser/client for index, API and WebSocket routes; try direct connection from another computer | Session/task/approval APIs rejected; remote direct connection unavailable; public static resources permitted; no claim of denial for stolen/forged valid authentication |
-| Transport lifetime | Close/reopen during transfer/live stream; send delayed callback or old handle after reopen/retry | Window transfer detaches without stopping task/approval; same ready service reused; stale handles/callbacks denied |
+| Transport lifetime | Hide/show during transfer/live stream; separately destroy/replace/fail document or Retry and send callbacks from invalidated generations | Normal hide/show retains authorized transport/document authority; destruction/page replacement/failure invalidates affected handles without stopping dsh work; runtime failure/retry revokes old authentication/handles; stale callbacks denied |
 | Network scope | Capture idle/setup/task traffic with fixture destinations; inspect disabled surfaces | No product telemetry, feedback export or custom plugin installation; project/task data only reaches permitted destinations |
 | Minimum OS | Install/run signed build on macOS 14 Apple Silicon | Runtime/native addons/window/lifecycle work at advertised minimum |
 
@@ -177,7 +177,7 @@ then judge the product against the planned adaptation, not against identical UI.
 | Decision | Controlled actions | Official reference expectation | Product expectation / allowed difference |
 |----------|--------------------|--------------------------------|-------------------------------------------|
 | A1 Launch/readiness | Launch with saved setup; reopen during startup; induce auth/startup failure; inspect HTTP/stream forwarding and renderer-visible state | One Host; native cookie exchange; packaged app-origin UI; authenticated HTTP forwarding and main-window WebSocket header injection; cleanup before retry | One Web CLI runtime; Rust-held cookie; packaged app-origin UI and frame-aware native HTTP/stream adapter using upstream hooks; no Electron header API assumption; 15-second failure ceiling; no replay or renderer cookie |
-| A2 Window lifecycle | Run a fixture task, then test a pending approval; close and reopen in 10 cycles | Main window hidden, same document and Host continue | Window may be recreated; same owned service and dsh session/task/approval continue. Record transient page-state reset separately; no task duplication or permission decision |
+| A2 Window lifecycle | Run a fixture task, then test a pending approval; close and reopen in 10 cycles | Main window hidden, same document and Host continue | Normal close retains and hides the window/document; reopen shows/focuses it with no closure-induced draft/selection/scroll reset or transport detach. Same service/session/task/approval continue; no task duplication or permission decision. Recreation after actual destruction/page failure has no unsaved-context guarantee |
 | A3 Quit confirmation | Run the 10-trial matrix below; also test idle quit and late responses/dialog failure using controlled unit fixtures | Active/scheduled or unknown work warns; idle inspected work may quit without a prompt; repeated requests join one decision | Always prompt while service is alive; Stay preserves work, confirmed quit waits for exit; no late or failed dialog grants quit. Extra idle prompt is intentional |
 | A4 Menus/shortcuts | Invoke matching menu/keyboard actions with local content then Harness content focused, including contextual page state | Official Close Page can route through contextual shortcut handling; Quit shares its native decision | Explicit native Close Window/Command+W and Quit/Command+Q have matching outcomes; upstream task/page shortcuts remain upstream-owned; no new shortcut customization/native shortcut bridge |
 | A5 Error recovery | Induce spawn/readiness/connection failure and service exit with a known test credential; select explicit recovery | Explicit error/recovery decision and cleanup; report text/path or plugin repair may be offered | Categorized non-secret local explanation/Retry, cleanup before new generation, readable persisted history, no replay. Report export/plugin repair omitted; test key absent from shell diagnostics |
@@ -215,15 +215,35 @@ or changed behavior invalidates affected prior results until reviewed/retested.
 
 - **SC-001 / SC-006**: >=10 target developers; >=90% submit within 5 minutes
   without help, >=90% complete/recover/identify task state, >=80% rate visibility
-  and control >=4/5.
+  and control >=4/5. Apply the SC-001/SC-006 rubric: first submission ends with
+  dsh receipt acknowledgement, not a model answer; summary workflow success
+  means locating dsh's reported outcome, not assessing answer quality. Retrieval
+  requires the original conversation and correct workspace identification;
+  awaiting-approval/completed answers use dsh's reported state as ground truth.
+  Give uniform task briefs, credentials and project locations without procedural
+  hints. Assisted participants stay in the denominator and do not count as
+  independently successful; the SC-006 90% outcome requires all three activities.
 - **SC-002**: 20 saved-setup launches, >=19 usable within 10 seconds; record
-  launch and usable timestamps, excluding model generation.
-- **SC-003 / SC-004**: 20 controlled tasks, >=19 streamed updates visible within
-  1 second of availability, all Stop acknowledgements within 1 second; every
-  approval-required/denied action obeys the permission gate.
+  process-start and usable timestamps. End when the workspace is visible,
+  service connection established and FR-002 task readiness satisfied. Use saved
+  configuration, current notice acknowledgement, accessible workspace and valid
+  configured credentials; exclude installation, first-use setup, user input time
+  and model generation. Use the named otherwise-idle release-test environment.
+- **SC-003 / SC-004**: 20 controlled task runs, each with observable response
+  and action-status updates; >=19 runs must have every recorded relevant update
+  visible within 1 second of arrival from dsh at the desktop-owned receiving
+  boundary. Any recorded late update fails that run; do not score individual
+  updates as the denominator. Exclude model generation and earlier dsh processing.
+  Every Stop acknowledgement must be visible within 1 second of application
+  receipt of the user's Stop request, with no 95% exemption. Every approval-
+  required/denied action obeys the permission gate. No shell task engine is added.
 - **SC-005**: 20 normal relaunches and 10 forced exits retain all previously
   persisted records without replay; >=19/20 openings of a 1,000-message fixture
-  within 2 seconds.
+  within 2 seconds. With application/dsh already connected, measure from receipt
+  of the session-open request until the target session is identified, its first
+  history screen is readable and browsing is available; do not require every
+  message to appear simultaneously or include application startup. Use the named
+  otherwise-idle environment; no shell-owned history cache/reader is required.
 - **SC-007**: 10 close/reopen cycles retain service identity and work; 10
   confirmed quits stop it; every declined quit preserves it.
 - **SC-008**: all six alignment decisions complete before affected implementation;
@@ -235,6 +255,16 @@ or changed behavior invalidates affected prior results until reviewed/retested.
   unauthenticated session/task/approval request and live-stream routes reject;
   remote direct connection fails; no auth token/cookie appears in renderer-visible
   state or shell diagnostics. Run the access checks above on the installed build.
+
+## Shell accessibility qualification
+
+For NFR-001, exercise shell-owned startup, failure/retry, safety notice and quit
+confirmation without a mouse. Record confirmation/cancellation/retry reachability,
+visible focus on custom controls, dialog focus entry/restoration, meaningful names
+and non-color-only status/error information. On supported macOS, record VoiceOver
+identification of controls, notices and key state changes. Check that embedding
+preserves dsh's existing keyboard and assistive-technology capabilities; do not
+claim product-wide WCAG conformance or require a replacement upstream UI.
 
 Record app/dsh/Node versions, manifest/build hash, OS/hardware/power conditions,
 fixture IDs, timestamps, owned PID/process-group/listener evidence, sanitized

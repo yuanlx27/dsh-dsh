@@ -14,7 +14,7 @@ identifier as `BRANCH`; the actual Git branch is `main`. No branch switch is nee
 Build a macOS Tauri shell around the supported upstream dsh Web application.
 Bundle Node.js and the complete dsh runtime; do not rebuild the agent, settings,
 workspace, approval, or history interfaces. The application owns one service
-instance independently of window lifetime. Closing windows preserves work;
+instance independently of window lifetime. Normal window close hides and retains the document, preserving drafts and page context as well as work;
 confirmed full quit stops the owned service. Desktop and dsh share the exact
 canonical semantic version. Serve the packaged interface from `dsh-app://app`;
 Rust privately exchanges the launch token for the upstream cookie and forwards
@@ -40,11 +40,11 @@ not a claim that source inspection proves the feature works.
 
 **Project Type**: Desktop application with bundled local service.
 
-**Performance Goals**: SC-002: >=19/20 saved-setup launches usable within 10 seconds; SC-003: >=19/20 updates visible within 1 second and every Stop acknowledgement within 1 second; SC-005: >=19/20 openings of 1,000-message history within 2 seconds. No extra throughput/RAM target.
+**Performance Goals**: SC-002: >=19/20 saved-setup launches usable within 10 seconds; SC-003: >=19/20 task runs have every recorded relevant update visible within 1 second of arrival at the desktop-owned receiving boundary; every Stop acknowledgement within 1 second of application receipt of the request; SC-005: >=19/20 openings of 1,000-message history within 2 seconds. No extra throughput/RAM target.
 
 **Constraints**: Full local runtime without host Node/npm/dsh; official-style shell-mediated loopback authentication with cookie/token withheld from renderer code; no general network proxy or renderer-controlled destinations; no telemetry or auto-replay; window close must not stop dsh; complete quit must stop only owned processes; exact desktop/dsh version equality. Upstream plaintext credentials and same-user-readable cookie-signing secret are accepted limitations, not process-identity isolation. Standard tools used by approved project commands are separate from the bundled runtime.
 
-**Scale/Scope**: One user, one app-owned dsh process tree, one primary workspace window recreated as needed; multiple workspaces/sessions managed by upstream. Four user stories, including reference alignment; no cloud sync, automatic updates, custom plugin installation, or independently redesigned Harness UI.
+**Scale/Scope**: One user, one app-owned dsh process tree, one primary workspace window hidden/shown on normal close/reopen and recreated only if absent or failed; multiple workspaces/sessions managed by upstream. Four user stories, including reference alignment; no cloud sync, automatic updates, custom plugin installation, or independently redesigned Harness UI.
 
 **Release-test environment**: MacBook Air Mac17,3, Apple M5, 16 GB RAM,
 macOS 27.0 build 26A428, local APFS sample workspaces, idle host. Record build
@@ -66,14 +66,22 @@ claiming the advertised minimum OS. The present host does not prove minimum-OS c
 
 No unjustified constitutional violations.
 
-**Feature feasibility gate: PASS at design level.** The user selected the official
+**Feature feasibility gate: Requirements-quality review complete; runtime feasibility remains pending validation.** The user selected the official
 shell-mediated approach; revised FR-025 explicitly accepts bearer authentication
 and its same-user credential-compromise limitation. Research identifies the
 upstream hooks and native APIs for a Tauri adaptation. Implementation must prove
 frame-aware sender validation and authenticated HTTP/WebSocket forwarding on
 WKWebView before release; failure blocks release, never authorizes leaking the
-cookie or falling back to authenticated localhost navigation. No unresolved
-specification decision remains.
+cookie or falling back to authenticated localhost navigation.
+
+The 2026-10-06 [requirements-quality review](desktop-requirements-review.md)
+records all 40 criteria satisfied after reviewer decisions, including adoption
+of official hide/retain behavior for normal window close under CHK038. NFR-001
+bounds accessibility to shell-owned surfaces and preservation of upstream
+capability. FR-013 adopts dsh-owned unavailable-directory history/continuation;
+no replacement-directory promise, shell migration or reassociation store remains.
+Requirements-quality approval does not establish runtime conformance or passing
+comparative/installed-app evidence.
 
 Release validation work remains pending and must not be represented as passing
 tests.
@@ -140,7 +148,7 @@ are recorded in [research section 8](research.md#8-official-desktop-reference-su
 | ID / area | Official source at O | Decision and expected product behavior | Reason and user impact | Acceptance mapping |
 |-----------|----------------------|----------------------------------------|------------------------|--------------------|
 | A1 Launch/readiness | [Host startup](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/host-process.ts), `DesktopHostProcess.start`; [Web forwarding](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/web-document.ts), `authenticateWebHost`, `forwardWebRequest`; `main.ts` protocol/WebSocket routing | **Adapted**: start once, exchange authentication privately, serve packaged UI at an application origin and mediate HTTP/live streams; retain R's Web CLI announcement and 15-second deadline | FR-018/FR-020 retain Web kernel/Tauri sidecars rather than Electron Host IPC. Adopt shell-owned authentication; Tauri uses a frame-aware native transport bridge instead of Electron request-header interception. No task reimplementation or process-identity guarantee | US1.1–5, US4.1; FR-025/SC-010; quickstart A1 and shell-mediated access checks |
-| A2 Window lifecycle | [Window lifecycle](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/main.ts), `createMainWindow`, `focusPrimaryWindow`, `activate`, `window-all-closed` | **Adapted**: close destroys the window, reopen recreates it against the same service; work and approvals remain unchanged | Official close hides and retains the document; preserve the existing window-recreation design and FR-019. Transient page state may reset, but dsh session/work must not; this difference needs comparative verification | US1.6–7, US4.1–2; SC-007; quickstart A2 |
+| A2 Window lifecycle | [Window lifecycle](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/main.ts), `createMainWindow`, `focusPrimaryWindow`, `activate`, `window-all-closed` | **Adopted**: normal close hides/retains the primary window and document; reopen shows/focuses it against the same service; drafts, selection and scroll state have no closure-induced reset, and work/approvals continue | Reviewer CHK038 supersedes the former destroy/recreate decision. Use native Tauri hide/show without separate page-state persistence. Actual destruction/page failure may require recreation; unsaved state is not guaranteed after crash/full quit/page failure. Comparative evidence remains pending | US1.6–7, US4.1–2; SC-007; quickstart A2 |
 | A3 Quit confirmation | [Quit decision](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/quit-confirmation.ts), `confirm`, `resolveDesktopQuitPrompt`; `main.ts` quit wiring | **Adapted**: retain an ownerless native Stay / Stop and Quit confirmation whenever a service is alive; adopt one pending decision, repeated-request joining, cancellation, and conservative unknown-state handling | Official Host can report active/scheduled work and allow idle quit without prompting; FR-018 and simplicity exclude a new inspector. Product users may see an extra idle prompt, including with zero windows; no unknown state authorizes silent interruption | US1.8, US2.6, US4.4; SC-007/SC-009; quickstart A3 |
 | A4 Menus/shortcuts | [Keyboard routing](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/keyboard.ts), `sendMenuClose`, `shortcutsCloseWindow`; `main.ts` application menu | **Adapted**: native Close Window / Command+W and Quit / Command+Q share their action handlers; other task shortcuts stay upstream-owned | Official Close Page uses contextual renderer routing and configurable bindings. Retain the chosen native window command without a native shortcut bridge; users get explicit close/quit behavior, not full official shortcut customization. Verify Web content cannot consume a native command and change its outcome | US1.6/8, US4.3; FR-023; quickstart A4 |
 | A5 Error recovery | [Fatal recovery](https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/apps/desktop/src/fatal-recovery.ts), `DesktopFatalRecovery.report`; `startup-error.ts` | **Adapted**: retain explicit recovery after owned-child cleanup, categorized non-secret explanations, and no replay | Official dialogs can include nested error text/report paths and disable third-party plugins. FR-004/FR-014 and excluded plugin management require sanitized local views and no copied report/export/plugin-repair surface; users retain safe recovery without secret leakage | US1.5, US2.5, US3.3, US4.2/5; quickstart A5 |

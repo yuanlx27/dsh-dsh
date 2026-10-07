@@ -13,70 +13,70 @@
 
 ## Requirement Completeness
 
-- [ ] CHK001 Are first-use setup and return-use requirements complete for safety acknowledgement, model configuration, workspace selection, and readiness prerequisites? [Completeness, Spec §FR-001–FR-005, Spec §FR-015, Spec §User Story 1]
-- [ ] CHK002 Are credential replacement and removal requirements defined for saved configuration, readiness, and tasks already underway, rather than only for future submissions? [Completeness, Spec §FR-003–FR-004, Gap]
-- [ ] CHK003 Are session creation, task submission, progress, approval, stopping, and final-outcome requirements specified as a complete end-to-end capability without assigning duplicate responsibilities to the shell? [Completeness, Spec §FR-006–FR-009, Spec §FR-018]
-- [ ] CHK004 Are session listing and identification requirements sufficiently specified for users to distinguish previous conversations across workspaces? [Completeness, Spec §FR-011, Spec §Key Entities, Gap]
-- [ ] CHK005 Are requirements for background operation, reopening, and full quit complete for both running tasks and pending approvals when no window remains? [Completeness, Spec §FR-010, Spec §FR-019, Spec §Edge Cases]
+- [x] CHK001 Are first-use setup and return-use requirements complete for safety acknowledgement, model configuration, workspace selection, and readiness prerequisites? [Completeness, Spec §FR-001–FR-005, Spec §FR-015, Spec §User Story 1]
+- [x] CHK002 Are credential replacement and removal requirements defined for saved configuration, readiness, and tasks already underway, rather than only for future submissions? [Completeness, Spec §FR-003–FR-004, Gap]
+- [x] CHK003 Are session creation, task submission, progress, approval, stopping, and final-outcome requirements specified as a complete end-to-end capability without assigning duplicate responsibilities to the shell? [Completeness, Spec §FR-006–FR-009, Spec §FR-018]
+- [x] CHK004 Are session listing and identification requirements sufficiently specified for users to distinguish previous conversations across workspaces? [Completeness, Spec §FR-011, Spec §Key Entities, Gap]
+- [x] CHK005 Are requirements for background operation, reopening, and full quit complete for both running tasks and pending approvals when no window remains? [Completeness, Spec §FR-010, Spec §FR-019, Spec §Edge Cases]
 
 ## Requirement Clarity
 
-- [ ] CHK006 Are the prerequisites distinguishing setup, ready, starting, and failed application states defined, including how they relate to session and task states? [Clarity, Spec §FR-002, Spec §FR-007, Ambiguity]
-- [ ] CHK007 Is an “accessible” or “valid” workspace defined with sufficient criteria to distinguish history-review access from permission to perform project work? [Clarity, Spec §FR-005, Spec §FR-013, Ambiguity]
-- [ ] CHK008 Is “immediately acknowledges” quantified consistently, and are stop-request acknowledgement, cessation of new actions, and completion of already-started actions distinguished? [Clarity, Spec §User Story 2 scenario 4, Spec §FR-009, Spec §SC-003]
-- [ ] CHK009 Are the scope and lifetime of safety-notice acknowledgement specified, including whether replacement credentials, new workspaces, or a changed release require renewed acknowledgement? [Clarity, Spec §FR-015, Gap]
-- [ ] CHK010 Are service-access terms such as “authorized application content” and “public non-sensitive static resources” defined precisely enough to identify permitted and prohibited access? [Clarity, Spec §FR-025, Ambiguity]
+- [x] CHK006 Are the prerequisites distinguishing setup, ready, starting, and failed application states defined, including how they relate to session and task states? [Clarity, Spec §FR-002, Spec §FR-007, Ambiguity]
+- [x] CHK007 Is an “accessible” or “valid” workspace defined with sufficient criteria to distinguish history-review access from permission to perform project work? [Clarity, Spec §FR-005, Spec §FR-013, Ambiguity]
+- [x] CHK008 Is “immediately acknowledges” quantified consistently, and are stop-request acknowledgement, cessation of new actions, and completion of already-started actions distinguished? [Clarity, Spec §User Story 2 scenario 4, Spec §FR-009, Spec §SC-003]
+- [x] CHK009 Are the scope and lifetime of safety-notice acknowledgement specified, including whether replacement credentials, new workspaces, or a changed release require renewed acknowledgement? [Clarity, Spec §FR-015, Gap]
+- [x] CHK010 Are service-access terms such as “authorized application content” and “public non-sensitive static resources” defined precisely enough to identify permitted and prohibited access? [Clarity, Spec §FR-025, Ambiguity]
 
 ## Requirement Consistency
 
-- [ ] CHK011 Are window closure, individual task stopping, and full application quit consistently treated as distinct operations across stories, edge cases, and functional requirements? [Consistency, Spec §User Stories 1–2, Spec §FR-009–FR-010, Spec §FR-019]
-- [ ] CHK012 Are the plan's unconditional quit confirmation while a service is alive and the specification's active-work or unknown-status confirmation requirements compatible, with the extra idle prompt explicitly justified? [Consistency, Spec §FR-010, Spec §FR-023, Plan §Official Desktop Alignment A3]
-- [ ] CHK013 Are upstream ownership and end-to-end guarantees consistent for credentials, tasks, permissions, and history, with no requirement implicitly introducing a second shell-owned implementation? [Consistency, Spec §FR-003–FR-013, Spec §FR-018, Plan §Summary]
-- [ ] CHK014 Are credential concealment requirements consistent with the explicitly accepted plaintext storage and same-user access limitations, without implying encryption or a security sandbox? [Consistency, Spec §FR-004, Spec §FR-015, Spec §Assumptions]
-- [ ] CHK015 Are supported-platform, bundled-runtime, and exact-version requirements consistent between the specification and the plan's narrower initial distribution scope? [Consistency, Spec §FR-001, Spec §FR-020–FR-021, Spec §Assumptions, Plan §Technical Context]
+- [x] CHK011 Are window closure, individual task stopping, and full application quit consistently treated as distinct operations across stories, edge cases, and functional requirements? [Consistency, Spec §User Stories 1–2, Spec §FR-009–FR-010, Spec §FR-019]
+- [x] CHK012 Are the plan's unconditional quit confirmation while a service is alive and the specification's active-work or unknown-status confirmation requirements compatible, with the extra idle prompt explicitly justified? [Consistency, Spec §FR-010, Spec §FR-023, Plan §Official Desktop Alignment A3]
+- [x] CHK013 Are upstream ownership and end-to-end guarantees consistent for credentials, tasks, permissions, and history, with no requirement implicitly introducing a second shell-owned implementation? [Consistency, Spec §FR-003–FR-013, Spec §FR-018, Plan §Summary]
+- [x] CHK014 Are credential concealment requirements consistent with the explicitly accepted plaintext storage and same-user access limitations, without implying encryption or a security sandbox? [Consistency, Spec §FR-004, Spec §FR-015, Spec §Assumptions]
+- [x] CHK015 Are supported-platform, bundled-runtime, and exact-version requirements consistent between the specification and the plan's narrower initial distribution scope? [Consistency, Spec §FR-001, Spec §FR-020–FR-021, Spec §Assumptions, Plan §Technical Context]
 
 ## Acceptance Criteria Quality
 
-- [ ] CHK016 Are first-task success and independent task-completion criteria defined sufficiently to interpret the participant percentages and assistance restrictions objectively? [Measurability, Spec §SC-001, Spec §SC-006]
-- [ ] CHK017 Are startup and history-review timing boundaries, successful outcomes, fixtures, and measurement conditions defined reproducibly? [Measurability, Spec §SC-002, Spec §SC-005, Spec §Assumptions, Plan §Technical Context]
-- [ ] CHK018 Is the response-update latency criterion explicit about its measurement unit and denominator, including whether the 95% threshold applies to runs or individual updates? [Measurability, Spec §SC-003, Ambiguity]
-- [ ] CHK019 Are approval, persistence, lifecycle, and service-access success criteria mapped to clearly bounded scenario sets rather than leaving their “100%” claims open-ended? [Acceptance Criteria, Spec §SC-004–SC-005, Spec §SC-007, Spec §SC-009–SC-010]
-- [ ] CHK020 Are official-alignment criteria explicit about the difference between complete planning decisions, source inspection, comparative evidence, and pending evidence? [Acceptance Criteria, Spec §FR-022–FR-024, Spec §SC-008]
+- [x] CHK016 Are first-task success and independent task-completion criteria defined sufficiently to interpret the participant percentages and assistance restrictions objectively? [Measurability, Spec §SC-001, Spec §SC-006]
+- [x] CHK017 Are startup and history-review timing boundaries, successful outcomes, fixtures, and measurement conditions defined reproducibly? [Measurability, Spec §SC-002, Spec §SC-005, Spec §Assumptions, Plan §Technical Context]
+- [x] CHK018 Is the response-update latency criterion explicit about its measurement unit and denominator, including whether the 95% threshold applies to runs or individual updates? [Measurability, Spec §SC-003, Ambiguity]
+- [x] CHK019 Are approval, persistence, lifecycle, and service-access success criteria mapped to clearly bounded scenario sets rather than leaving their “100%” claims open-ended? [Acceptance Criteria, Spec §SC-004–SC-005, Spec §SC-007, Spec §SC-009–SC-010]
+- [x] CHK020 Are official-alignment criteria explicit about the difference between complete planning decisions, source inspection, comparative evidence, and pending evidence? [Acceptance Criteria, Spec §FR-022–FR-024, Spec §SC-008]
 
 ## Scenario Coverage
 
-- [ ] CHK021 Are alternate paths specified for returning to saved setup, changing the workspace during active work, and declining quit without losing the current context? [Coverage, Alternate Flow, Spec §User Story 1 scenario 4, Spec §FR-010–FR-011]
-- [ ] CHK022 Are corrective-message and next-action requirements defined for startup failure, rejected credentials, model unavailability or usage limits, and workspace-access failure? [Coverage, Exception Flow, Spec §FR-003, Spec §FR-014, Spec §Edge Cases]
-- [ ] CHK023 Are recovery requirements complete for both service failure and unexpected application exit, including preserved history, interrupted-work classification, explicit recovery, and prohibition of automatic replay? [Coverage, Recovery, Spec §FR-012, Spec §FR-014, Spec §Edge Cases]
-- [ ] CHK024 Are workspace-replacement requirements explicit about confirmation, session association, and the treatment of the original workspace's other sessions? [Coverage, Recovery, Spec §FR-013, Spec §Key Entities, Gap]
-- [ ] CHK025 Are normal and background-only quit requirements complete when work status is unknown or repeated quit requests occur during an unresolved decision? [Coverage, Exception Flow, Spec §FR-019, Spec §FR-023, Spec §SC-009]
+- [x] CHK021 Are alternate paths specified for returning to saved setup, changing the workspace during active work, and declining quit without losing the current context? [Coverage, Alternate Flow, Spec §User Story 1 scenario 4, Spec §FR-010–FR-011]
+- [x] CHK022 Are corrective-message and next-action requirements defined for startup failure, rejected credentials, model unavailability or usage limits, and workspace-access failure? [Coverage, Exception Flow, Spec §FR-003, Spec §FR-014, Spec §Edge Cases]
+- [x] CHK023 Are recovery requirements complete for both service failure and unexpected application exit, including preserved history, interrupted-work classification, explicit recovery, and prohibition of automatic replay? [Coverage, Recovery, Spec §FR-012, Spec §FR-014, Spec §Edge Cases]
+- [x] CHK024 Are workspace-replacement requirements explicit about confirmation, session association, and the treatment of the original workspace's other sessions? [Coverage, Recovery, Spec §FR-013, Spec §Key Entities, Gap]
+- [x] CHK025 Are normal and background-only quit requirements complete when work status is unknown or repeated quit requests occur during an unresolved decision? [Coverage, Exception Flow, Spec §FR-019, Spec §FR-023, Spec §SC-009]
 
 ## Edge Case Coverage
 
-- [ ] CHK026 Are duplicate-submission requirements clear about what counts as the same submission, without preventing an intentional later repetition of identical text? [Clarity, Edge Case, Spec §FR-006, Spec §Edge Cases, Ambiguity]
-- [ ] CHK027 Are pending-approval requirements consistent for dismissal, last-window closure, denial, unexpected exit, and recovery, with no implicit approval in any case? [Coverage, Edge Case, Spec §FR-008, Spec §FR-012, Spec §FR-019, Spec §Edge Cases]
-- [ ] CHK028 Are requirements defined for concurrent work across sessions, particularly the scope of active-work warnings and “stop and leave” when more than one session has work underway? [Coverage, Edge Case, Spec §FR-006, Spec §FR-010, Gap]
-- [ ] CHK029 Are bounded startup-failure and full-quit requirements specified when the owned service cannot become ready or cannot stop normally, including the treatment of unfinished actions? [Coverage, Edge Case, Spec §FR-002, Spec §FR-009, Spec §FR-019, Plan §Official Desktop Alignment A1, Gap]
-- [ ] CHK030 Are requirements for missing, partially persisted, or unreadable local records specified, or explicitly excluded from the history-preservation guarantee? [Coverage, Edge Case, Spec §FR-011–FR-012, Spec §SC-005, Gap]
+- [x] CHK026 Are duplicate-submission requirements clear about what counts as the same submission, without preventing an intentional later repetition of identical text? [Clarity, Edge Case, Spec §FR-006, Spec §Edge Cases, Ambiguity]
+- [x] CHK027 Are pending-approval requirements consistent for dismissal, last-window closure, denial, unexpected exit, and recovery, with no implicit approval in any case? [Coverage, Edge Case, Spec §FR-008, Spec §FR-012, Spec §FR-019, Spec §Edge Cases]
+- [x] CHK028 Are requirements defined for concurrent work across sessions, particularly the scope of active-work warnings and “stop and leave” when more than one session has work underway? [Coverage, Edge Case, Spec §FR-006, Spec §FR-010, Gap]
+- [x] CHK029 Are bounded startup-failure and full-quit requirements specified when the owned service cannot become ready or cannot stop normally, including the treatment of unfinished actions? [Coverage, Edge Case, Spec §FR-002, Spec §FR-009, Spec §FR-019, Plan §Official Desktop Alignment A1, Gap]
+- [x] CHK030 Are requirements for missing, partially persisted, or unreadable local records specified, or explicitly excluded from the history-preservation guarantee? [Coverage, Edge Case, Spec §FR-011–FR-012, Spec §SC-005, Gap]
 
 ## Non-Functional Requirements
 
-- [ ] CHK031 Are service-access security requirements complete for authorized content, unauthorized content, local unauthenticated clients, remote clients, authentication confidentiality, and the stated same-user compromise exclusions? [Security, Completeness, Spec §FR-025, Spec §SC-010, Spec §Assumptions]
-- [ ] CHK032 Are data-destination and credential-concealment requirements explicit about the data covered, permitted disclosures, and the distinction between application-authored diagnostics and upstream or approved-action output? [Privacy, Clarity, Spec §FR-004, Spec §FR-017, Ambiguity]
-- [ ] CHK033 Are accessibility requirements documented for setup, progress/status information, approvals, recovery notices, and native confirmations, or explicitly declared outside the initial requirements scope? [Accessibility, Gap]
-- [ ] CHK034 Are performance requirements bounded to desktop-controlled work, with model latency excluded and no unsupported guarantees inferred for background work or unusually large sessions? [Performance, Clarity, Spec §SC-002–SC-005, Spec §Assumptions]
+- [x] CHK031 Are service-access security requirements complete for authorized content, unauthorized content, local unauthenticated clients, remote clients, authentication confidentiality, and the stated same-user compromise exclusions? [Security, Completeness, Spec §FR-025, Spec §SC-010, Spec §Assumptions]
+- [x] CHK032 Are data-destination and credential-concealment requirements explicit about the data covered, permitted disclosures, and the distinction between application-authored diagnostics and upstream or approved-action output? [Privacy, Clarity, Spec §FR-004, Spec §FR-017, Ambiguity]
+- [x] CHK033 Are accessibility requirements documented for setup, progress/status information, approvals, recovery notices, and native confirmations, or explicitly declared outside the initial requirements scope? [Accessibility, Gap]
+- [x] CHK034 Are performance requirements bounded to desktop-controlled work, with model latency excluded and no unsupported guarantees inferred for background work or unusually large sessions? [Performance, Clarity, Spec §SC-002–SC-005, Spec §Assumptions]
 
 ## Dependencies & Assumptions
 
-- [ ] CHK035 Are the chosen upstream release's required task, persistence, permission, and configuration capabilities documented as dependencies whose compatibility must be established rather than assumed? [Dependency, Assumption, Spec §FR-016, Spec §FR-018, Spec §Assumptions, Plan §Summary]
-- [ ] CHK036 Are self-contained installation requirements distinguished from external model access and tools needed by approved project actions, including supported OS and hardware assumptions? [Dependency, Clarity, Spec §FR-020, Spec §Assumptions, Plan §Technical Context]
-- [ ] CHK037 Are the official reference baseline and bundled release baseline distinguished, with change-review obligations and unavailable-evidence handling specified for both? [Dependency, Traceability, Spec §FR-022–FR-024, Spec §Assumptions, Plan §Official Desktop Alignment]
+- [x] CHK035 Are the chosen upstream release's required task, persistence, permission, and configuration capabilities documented as dependencies whose compatibility must be established rather than assumed? [Dependency, Assumption, Spec §FR-016, Spec §FR-018, Spec §Assumptions, Plan §Summary]
+- [x] CHK036 Are self-contained installation requirements distinguished from external model access and tools needed by approved project actions, including supported OS and hardware assumptions? [Dependency, Clarity, Spec §FR-020, Spec §Assumptions, Plan §Technical Context]
+- [x] CHK037 Are the official reference baseline and bundled release baseline distinguished, with change-review obligations and unavailable-evidence handling specified for both? [Dependency, Traceability, Spec §FR-022–FR-024, Spec §Assumptions, Plan §Official Desktop Alignment]
 
 ## Ambiguities & Conflicts
 
-- [ ] CHK038 Is the transient-state boundary on window recreation explicit about which desktop context may reset and which session, task, approval, and workspace context must remain recoverable? [Ambiguity, Clarity, Spec §User Story 1 scenario 7, Spec §FR-019, Plan §Official Desktop Alignment A2]
-- [ ] CHK039 Is the boundary between “previously persisted” history and not-yet-persisted progress clear enough to interpret preservation guarantees without implying zero data loss? [Ambiguity, Clarity, Spec §FR-012, Spec §User Story 2 scenario 5, Spec §SC-005]
-- [ ] CHK040 Are precedence rules explicit when official behavior conflicts with approved product requirements, including the documentation needed for intentional differences and exclusion of unrelated capabilities? [Conflict, Consistency, Spec §FR-022, Spec §User Story 4 scenario 2, Spec §Assumptions]
+- [x] CHK038 Is the transient-state boundary on window recreation explicit about which desktop context may reset and which session, task, approval, and workspace context must remain recoverable? [Ambiguity, Clarity, Spec §User Story 1 scenario 7, Spec §FR-019, Plan §Official Desktop Alignment A2]
+- [x] CHK039 Is the boundary between “previously persisted” history and not-yet-persisted progress clear enough to interpret preservation guarantees without implying zero data loss? [Ambiguity, Clarity, Spec §FR-012, Spec §User Story 2 scenario 5, Spec §SC-005]
+- [x] CHK040 Are precedence rules explicit when official behavior conflicts with approved product requirements, including the documentation needed for intentional differences and exclusion of unrelated capabilities? [Conflict, Consistency, Spec §FR-022, Spec §User Story 4 scenario 2, Spec §Assumptions]
 
 ## Notes
 
@@ -87,4 +87,6 @@
 - Add comments or findings inline; link to the relevant requirement or planning section.
 - `[Gap]`, `[Ambiguity]`, `[Conflict]`, and `[Assumption]` identify review questions, not established defects or mandates to expand scope.
 - Upstream-owned functionality is included for end-to-end requirements quality; inclusion does not transfer implementation ownership to the desktop shell.
-- No implementation evaluation was requested or performed. All generated items remain unchecked and are numbered sequentially.
+- Review performed on 2026-10-06 under explicit reviewer authorization: 40 criteria satisfied; no pending manual decisions. No implementation evaluation was performed.
+- See [review evidence and pending decisions](../desktop-requirements-review.md) for each criterion's basis, adopted official behavior, and unresolved questions.
+- Checked markers record requirements-quality approval only; official runtime parity and product conformance remain pending.

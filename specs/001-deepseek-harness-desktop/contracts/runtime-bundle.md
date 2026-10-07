@@ -140,10 +140,15 @@ than assuming Tauri's byte-body URI responder is a streaming HTTP server.
   consistent with R, including its 300 MiB buffered API-body default. Preserve
   binary/multipart data and streaming cancellation; reject oversized input before
   dispatch. Do not route arbitrary responses through global broadcast events.
-- Closing the window invalidates its handles and cancels its transfers/streams,
-  not agent tasks or approvals. Reopening reattaches to the same native cookie
-  and service generation. Failure/quit invalidates all handles and discards native
-  authentication; stale chunks, callbacks and closed-window operations are denied.
+- Normal window close hides and retains the owned document; it does not itself
+  detach authorized transfers/streams or invalidate that document's handles.
+  Show/reopen uses the same document, window generation, native cookie and service.
+  Actual destruction, document replacement/navigation or page failure invalidates
+  the affected handles and cancels renderer transfers, not agent tasks/approvals.
+  A recreated document must satisfy sender validation and receive new handles.
+  Runtime failure/quit invalidates all handles and discards native authentication;
+  stale chunks/callbacks from invalidated generations are denied. Hidden content
+  retains only its existing narrow authority, never new windows/origins/frames.
 
 The underlying server still authenticates bearer cookies. Unauthenticated local
 session/task/approval APIs are denied; public non-sensitive assets may be reachable
