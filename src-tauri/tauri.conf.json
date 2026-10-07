@@ -1,0 +1,41 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "DeepSeek Harness Desktop",
+  "version": "0.2.0-rc.2",
+  "identifier": "io.github.yuanlx27.dsh-dsh",
+  "build": {
+    "beforeDevCommand": "npm run runtime:verify && npm run build:frontend",
+    "beforeBuildCommand": "npm run runtime:verify && npm run build:frontend",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "capabilities": [],
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; connect-src 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "app",
+      "dmg"
+    ],
+    "externalBin": [
+      "binaries/node",
+      "binaries/dsh"
+    ],
+    "resources": {
+      "resources/dsh/": "dsh/",
+      "resources/runtime-manifest.json": "runtime-manifest.json",
+      "resources/desktop-web.patch.yml": "desktop-web.patch.yml"
+    },
+    "macOS": {
+      "minimumSystemVersion": "14.0",
+      "bundleVersion": "1",
+      "infoPlist": "Info.plist",
+      "signingIdentity": "-",
+      "hardenedRuntime": false
+    }
+  }
+}
