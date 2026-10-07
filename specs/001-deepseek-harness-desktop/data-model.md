@@ -68,6 +68,11 @@ model configuration belongs here. Reopened Harness selection is dsh-owned.
 | nativeBuildNumber | numeric build identifier | Monotonic packaging metadata, not an independent product version |
 
 The manifest is packaged with immutable resources, not editable user settings.
+Artifact hashes describe final signed nested resources, not their pre-signing
+bytes or original download checksums. Generate the final inventory after nested
+signing and before outer application signing; do not change inventoried resources
+or the manifest afterward. This applies to local ad-hoc and future Developer ID
+builds alike; validate the actual installed bytes.
 Canonical versions are distinct from any numeric Apple plist encoding.
 
 ## Shell-owned transient entities

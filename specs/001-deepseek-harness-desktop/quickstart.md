@@ -12,7 +12,8 @@ Implementation prerequisites:
 - build-host Node 24.21.0 and npm; these are not installed-user prerequisites;
 - registry access while preparing the locked runtime, valid DeepSeek test key,
   disposable Git workspace and controlled task/approval fixtures;
-- Developer ID signing/notarization credentials for distribution validation;
+- no Apple developer account is required for current local ad-hoc signing/testing;
+  Developer ID credentials are required only for deferred public distribution;
 - named release-test host from [plan](plan.md), plus macOS 14 Apple Silicon
   minimum-OS runner. Use native WKWebView acceptance, not only a browser.
 
@@ -34,15 +35,38 @@ npm run tauri:build -- --target aarch64-apple-darwin --bundles app,dmg
 Expected: locked build-time downloads only; matching full desktop/dsh version;
 bundled Node/dsh and complete frontend/native runtime; tests passing; generated
 app/DMG. `runtime:verify` must fail on a deliberately mismatched manifest/package.
-Development success is not a substitute for installed signed-build acceptance.
+Development success is not a substitute for installed native-build acceptance.
+The command sequence above does not establish final signing/manifest ordering;
+T052's planned `scripts/package-macos.mjs` procedure must sign nested resources,
+regenerate final hashes, sign the outer app and package it before final acceptance.
 Transport tests must cover actual WKWebView frame identity and both native HTTP
 and WebSocket paths; Electron-only tests do not prove the Tauri adaptation.
 
+## Delivery modes and final packaging
+
+Current delivery is a locally installed ad-hoc-signed .app/DMG. It requires no
+Apple developer account and makes no claim of Apple notarization or Gatekeeper
+acceptance on another computer. Do not disable system security controls to obtain
+passing evidence. If a host rejects installation/launch, record that limitation.
+
+For either mode, stage runtime resources, sign nested Node/launcher/native addons,
+regenerate the final resource inventory/hashes and manifest, sign the outer app,
+and package it. Never alter the manifest or inventoried resources after outer
+signing; retain original download checksums separately. Verify the installed
+bytes against the final manifest and test actual Node/native-addon loading.
+
+Public distribution is deferred until Developer ID credentials are available.
+It additionally requires least-privilege hardened-runtime/JIT qualification,
+notarization/stapling and public-distribution installation/Gatekeeper checks.
+Local ad-hoc results cannot satisfy those gates. Record them as deferred rather
+than blocking the current local-build workflow or marking them passed.
+
 ## Installed-build scenarios
 
-Install the signed/notarized DMG on a clean supported account without separately
-installed Node, npm or dsh. For offline checks, disconnect external networking
-after installation. Keep model-backed tests online.
+Install the local ad-hoc-signed .app/DMG on a clean supported account without
+separately installed Node, npm or dsh. Record host-specific launch restrictions.
+For offline checks, disconnect external networking after installation. Keep
+model-backed tests online.
 
 | Scenario | Steps | Expected evidence |
 |----------|-------|-------------------|
@@ -64,7 +88,9 @@ after installation. Keep model-backed tests online.
 | Service admission | Use a separate unauthenticated browser/client for index, API and WebSocket routes; try direct connection from another computer | Session/task/approval APIs rejected; remote direct connection unavailable; public static resources permitted; no claim of denial for stolen/forged valid authentication |
 | Transport lifetime | Hide/show during transfer/live stream; separately destroy/replace/fail document or Retry and send callbacks from invalidated generations | Normal hide/show retains authorized transport/document authority; destruction/page replacement/failure invalidates affected handles without stopping dsh work; runtime failure/retry revokes old authentication/handles; stale callbacks denied |
 | Network scope | Capture idle/setup/task traffic with fixture destinations; inspect disabled surfaces | No product telemetry, feedback export or custom plugin installation; project/task data only reaches permitted destinations |
-| Minimum OS | Install/run signed build on macOS 14 Apple Silicon | Runtime/native addons/window/lifecycle work at advertised minimum |
+| Minimum OS | Install/run local ad-hoc build on macOS 14 Apple Silicon when a runner is available | Runtime/native addons/window/lifecycle work at advertised minimum; unavailable evidence remains pending, not qualified |
+| Final artifact integrity | Verify installed nested resources after final signing/packaging | Final manifest hashes match installed bytes; no manifest/resource edits after outer signing |
+| Public distribution (deferred) | When Developer ID credentials become available, sign, notarize/staple and test installation under normal system security controls | Developer ID signatures, hardened-runtime/JIT, notarization and Gatekeeper evidence; never inferred from ad-hoc results |
 
 Use [lifecycle contract](contracts/desktop-lifecycle.md) and
 [bundle contract](contracts/runtime-bundle.md) for exact behaviors and
@@ -269,5 +295,8 @@ claim product-wide WCAG conformance or require a replacement upstream UI.
 Record app/dsh/Node versions, manifest/build hash, OS/hardware/power conditions,
 fixture IDs, timestamps, owned PID/process-group/listener evidence, sanitized
 network findings and pass/fail results. Never include credentials or authenticated
-URLs in reports. Inspect signatures/notarization and generated plist version
-mapping. Do not claim release compliance from this design-only phase.
+URLs in reports. Inspect ad-hoc signatures, final installed hashes and generated
+plist version mapping for local qualification. Track pending environment evidence
+and deferred Developer ID/notarization/public-distribution gates separately;
+never claim public-release readiness from local ad-hoc results. Do not claim
+runtime compliance from this design-only phase.

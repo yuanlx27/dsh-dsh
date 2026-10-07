@@ -2,7 +2,12 @@
 
 ## Immutable distribution
 
-Initial target: `aarch64-apple-darwin`, macOS 14+, signed/notarized .app and DMG.
+Initial target: `aarch64-apple-darwin`, macOS 14+. Current delivery is a locally
+installed ad-hoc-signed .app/DMG with no Apple developer account required.
+Developer ID signing, notarization/stapling and public-distribution qualification
+are deferred until credentials are available. Ad-hoc signing does not establish
+Apple notarization or Gatekeeper acceptance elsewhere; do not disable system
+security controls for validation.
 Tauri `bundle.externalBin` contains `binaries/node` and `binaries/dsh`;
 staging filenames include the target suffix required by Tauri. The dsh binary is
 a minimal native launcher because upstream's actual CLI bin is JavaScript.
@@ -46,10 +51,18 @@ mismatch fails packaging and startup before Web navigation or task input.
 About uses the manifest's full canonical version. Numeric Apple version/build
 fields are derived packaging representations, not separate release versions.
 
-No runtime dependency fetch. Native binaries/addons must be signed in the final
-bundle; inspect entitlements required for Node JIT under hardened runtime, apply
-the least privileges necessary, and test the actual notarized installed build.
-Do not distribute an unsigned development runtime as a passing production test.
+No runtime dependency fetch. For local qualification, ad-hoc sign nested native
+binaries/addons, generate final inventory hashes from those signed bytes, then
+sign the outer application and package it. Never modify the manifest or
+inventoried resources after outer signing. Keep source download integrity
+separate from final artifact hashes; verify the installed bytes against the
+manifest and test bundled Node/native-addon loading with only required entitlements.
+
+Future public distribution must use Developer ID signatures, qualify least-
+privilege hardened-runtime/JIT entitlements, notarize/staple and test actual
+installed distribution under normal system security controls. These are deferred
+public-release gates, not local-build prerequisites. Do not represent local
+ad-hoc or development evidence as passing public-distribution qualification.
 
 ## Launch inputs
 
@@ -177,7 +190,10 @@ mechanism; do not make isolation guarantees.
 Clean-machine launch without Node/npm/dsh; offline startup; bundle path containing
 spaces; architecture mismatch; corrupt/missing resources; different desktop/dsh
 prereleases; occupied conventional port; native addon loading; denied app-data
-write; repeated launch; shell crash; signed/notarized execution. Every negative
+write; repeated launch; shell crash; locally installed ad-hoc execution and final
+signed-resource hash equality. Missing minimum-OS evidence remains pending;
+Developer ID/notarized public-distribution execution is deferred separately.
+Every negative
 case must block unsafe startup and provide a non-secret explanation.
 
 Transport acceptance additionally covers private token exchange, auth-header and
@@ -185,4 +201,6 @@ redirect stripping, exact-owned-destination validation, native frame rejection,
 HTTP and WebSocket denial for unauthenticated local clients, no authentication in
 renderer state, streaming/binary fidelity, bounded queues and stale-handle rejection.
 Run credential lifecycle and `0600`/overly-permissive-file tests separately. These
-are implementation release gates, not evidence of an already tested build.
+are implementation qualification gates, not evidence of an already tested build.
+Local qualification and pending functional/environment evidence must be reported
+separately from deferred public-distribution readiness.
