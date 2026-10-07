@@ -32,6 +32,8 @@ test("bundle declares fixed resources, both sidecars and local macOS-only delive
   const cargo = await readFile(new URL(".cargo/config.toml", root), "utf8");
   assert.match(cargo, /target = "aarch64-apple-darwin"/);
   assert.match(cargo, /MACOSX_DEPLOYMENT_TARGET = "14.0"/);
+  const manifest = await readFile(new URL("src-tauri/Cargo.toml", root), "utf8");
+  assert.match(manifest, /\[profile\.release\.build-override\]\s+strip = "none"/);
   assert.deepEqual(config.app.windows, []);
   assert.deepEqual(config.app.security.capabilities, []);
   assert.equal(config.plugins, undefined);

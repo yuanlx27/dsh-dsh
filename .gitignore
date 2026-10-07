@@ -32,6 +32,7 @@ coverage/
 src-tauri/binaries/
 src-tauri/resources/dsh/
 src-tauri/resources/runtime-manifest.json
+src-tauri/resources/runtime.lock.json
 *.log
 .env*
 *.rlib

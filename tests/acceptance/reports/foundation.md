@@ -1,6 +1,6 @@
-# Foundation evidence (partial; blocked)
+# Foundation evidence (partial; staging restored)
 
-**Status: failing build-time staging; T015 remains incomplete.** T001–T012
+**Status: build-time staging and verification pass; T015 remains incomplete.** T001–T012
 implementation/test-authoring tasks are checked off. T013–T015 and all story/
 installed-distribution tasks remain unchecked. Source completion is not runtime
 qualification. No candidate .app/DMG or native transport has been qualified.
@@ -36,6 +36,9 @@ qualification. No candidate .app/DMG or native transport has been qualified.
 | Rust library tests | 3/3 passed | Bundle path/version mapping and preferences privacy/atomic failure/schema/bounds |
 | Clippy | Library and launcher passed with `-D warnings` | Static native checks |
 | Debug launcher build | Succeeded with pinned toolchain/arm64 target | Helper-process execution, not bundled dsh Web |
+| Release launcher build | Succeeded after disabling stripping only for host build dependencies, including in a fresh target directory | Same Rust 1.96.0 and locked dependencies; target release optimization unchanged |
+| Complete runtime staging | `runtime:prepare` succeeded and generated 26,610 artifact entries | Build-time staging, not final nested/outer signed distribution |
+| Staged runtime verification | `runtime:verify` succeeded: dsh `0.2.0-rc.2`, Node `24.21.0`, arm64; complete inventory and dependency resolution checks | Actual staged Node/CLI probes, not installed native-addon/Web acceptance |
 | Owned helper EOF | Launcher/group exited; separate sentinel remained alive, about 1.04 seconds | Actual spawned disposable shell helper |
 | Explicit Stop | Launcher/group exited; sentinel alive, about 1.03 seconds | Actual helper, private stdin pipe |
 | SIGTERM | Launcher/group exited; sentinel alive, about 1.04 seconds | Actual helper, signal listener |
@@ -45,38 +48,63 @@ qualification. No candidate .app/DMG or native transport has been qualified.
 Tracked test roots are disposable. No model key or service token/cookie was used
 in these checks. The helper timings are observations, not SC release measurements.
 
-## Blocking failure
+## Resolved release-build failure
 
-Running `npm run runtime:prepare` under Node 24.21.0 completed verified downloads
-and frozen production install, then failed in:
+The first `runtime:prepare` failed while compiling the release launcher, with
+`E0463` for `zerofrom_derive`, `tokio_macros` and `futures_macro`. Execution
+initially stopped and did not claim successful staging. Follow-up investigation
+reproduced the failure directly, outside npm:
 
 ```sh
-cargo build --locked --release --manifest-path src-tauri/Cargo.toml --bin dsh-launcher
+cargo build --locked --release --manifest-path src-tauri/Cargo.toml --bin dsh-launcher -vv
 ```
 
-Rust reported `E0463` (cannot find/load procedural-macro crates):
-`zerofrom_derive`, `tokio_macros`, and `futures_macro`. Preparation returned
-nonzero and did not generate a successful staged manifest; the subsequent
-`runtime:verify` command was not executed. Do not describe staging as passing.
+Verbose output exposed the underlying macOS `dlopen` rejection:
+`mis-aligned LINKEDIT string pool`, also observed for `serde_derive`. Direct
+loading of the four original release macro dylibs failed; their Mach-O
+`LC_SYMTAB.stroff` values had remainder 4 modulo 8. Corresponding debug macro
+libraries were aligned modulo 8 and loaded successfully. Signatures and CPU
+architecture were valid, so signature validity alone did not establish dyld
+loadability. The tokio library depended only on libSystem.
 
-Read-only diagnostics found the three release macro dylibs on disk, identified
-as arm64 Mach-O libraries. `otool -L` on the tokio macro showed only libSystem;
-`codesign --verify` reported that dylib valid on disk. These observations do
-not identify or fix the loader failure. Debug compilation previously succeeded.
-No system security controls were disabled and no baseline/toolchain was changed
-as a workaround.
+A fresh, isolated Cargo target directory reproduced the default release failure,
+excluding the existing project cache as the cause. Its host macro compiler
+invocation used `-C strip=debuginfo`. Changing only the host build-dependency
+strip setting made both the project and fresh-directory release builds succeed:
 
-Execution stopped at this non-parallel build failure. Next work: reproduce the
-release command directly and inspect the Rust/Cargo procedural-macro loading
-environment/cache issue; fix and rerun locked release staging/verification before
-advancing. Preserve the exact toolchain and runtime locks unless a reviewed
-change is necessary. Do not copy a debug binary and claim a successful release.
+```sh
+cargo --config 'profile.release.build-override.strip="none"' build \
+  --locked --release --manifest-path src-tauri/Cargo.toml --bin dsh-launcher
+```
+
+The resulting tokio macro library was aligned and loaded successfully. The
+workaround is now persisted in `src-tauri/Cargo.toml`:
+
+```toml
+[profile.release.build-override]
+strip = "none"
+```
+
+This changes only host build dependencies (including procedural macros), not
+target release optimization or canonical runtime/toolchain identities. The
+interaction is localized to link-time stripping of the affected macro libraries
+on this macOS 27 host (Apple linker 27037.1, rustc LLVM 22.1.2). A trivial standalone
+macro and a temporary copy stripped afterward with `strip -S` both loaded, so
+this is not evidence that every stripped library is broken, nor a determination
+of which upstream tool component needs a permanent fix.
+
+After persisting the narrow configuration, full `runtime:prepare` and
+`runtime:verify` passed under pinned Node/npm, with 26,610 staged artifacts.
+The 36 packaging tests, three library tests and library/launcher Clippy checks
+were rerun and passed. No security controls were disabled; no debug binary was
+substituted, no dependency version changed and no shared cache was deleted.
+Other feature tasks were not advanced during this investigation.
 
 ## Still pending
 
-- Successful release launcher, complete staged/final-signed inventory and actual
-  Rust startup bundle verification; actual bundled native-addon loading and
-  path-with-spaces runtime execution.
+- Final-signed inventory and actual Rust startup bundle verification; actual
+  bundled native-addon loading and path-with-spaces runtime execution. Successful
+  release compilation/staging alone does not qualify these gates.
 - T013 bounded readiness/one-generation owner and T014 failure/retry transitions;
   T007 integration suite cannot pass before their implementation.
 - T022 validated Web overlay and real Web launch/auth/boot/transport/native-frame
@@ -85,4 +113,4 @@ change is necessary. Do not copy a debug binary and claim a successful release.
   application lifecycle, security/access/network tests, O comparisons,
   accessibility/performance and the >=10-developer study.
 - Developer ID/notarization/public-distribution qualification remains deferred,
-  separate from the current blocking local build failure.
+  separate from the now-resolved local release-build failure.
