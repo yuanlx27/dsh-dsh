@@ -21,17 +21,7 @@ use url::Url;
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Failure {
-    InvalidBundle,
-    Launch,
-    Announcement,
-    Timeout,
-    Exited,
-    Cleanup,
-    Connection,
-    Unavailable,
-}
+pub use crate::errors::Failure;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum State {
@@ -336,14 +326,25 @@ async fn owner(
     loop {
         tokio::select! {
             request = requests.recv() => match request {
-                None => { if let Some(p) = process.as_mut() { let _ = p.stop().await; } break; }
+                None => {
+                    if let Some(value) = startup.take() { value.discard_token(); }
+                    if let Some(p) = process.as_mut() { let _ = p.stop().await; }
+                    break;
+                }
                 Some(Request::Start(reply)) => {
                     if matches!(*state.borrow(), State::Starting(_) | State::Ready(_)) {
                         if let Some(value) = &startup { let _ = reply.send(Ok(value.clone())); }
                         else { waiters.push(reply); }
                         continue;
                     }
-                    if process.is_some() { let _ = reply.send(Err(Failure::Cleanup)); continue; }
+                    if let Some(p) = process.as_mut() {
+                        state.send_replace(State::Stopping(generation));
+                        if p.stop().await.is_err() {
+                            state.send_replace(State::Failed(generation, Failure::Cleanup));
+                            let _ = reply.send(Err(Failure::Cleanup)); continue;
+                        }
+                        process = None;
+                    }
                     generation += 1;
                     deadline = Instant::now() + Duration::from_secs(15);
                     state.send_replace(State::Starting(generation));
@@ -378,6 +379,7 @@ async fn owner(
                         startup = Some(value);
                     }
                     Err(error) => {
+                        state.send_replace(State::Failed(generation, error));
                         let clean = if let Some(p) = process.as_mut() { p.stop().await.is_ok() } else { true };
                         if clean { process = None; }
                         let error = if clean { error } else { Failure::Cleanup };
@@ -388,17 +390,20 @@ async fn owner(
             },
             _ = tokio::time::sleep_until(deadline), if matches!(*state.borrow(), State::Starting(_)) => {
                 if let Some(value) = startup.take() { value.discard_token(); }
+                state.send_replace(State::Failed(generation, Failure::Timeout));
                 let clean = if let Some(p) = process.as_mut() { p.stop().await.is_ok() } else { true };
                 if clean { process = None; }
                 let error = if clean { Failure::Timeout } else { Failure::Cleanup };
                 state.send_replace(State::Failed(generation, error));
                 for waiter in waiters.drain(..) { let _ = waiter.send(Err(error)); }
             },
-            _ = async { process.as_mut().unwrap().child.wait().await }, if process.is_some() && !matches!(*state.borrow(), State::Failed(_, Failure::Cleanup)) => {
+            status = async { process.as_mut().unwrap().child.wait().await }, if process.is_some() && !matches!(*state.borrow(), State::Failed(_, Failure::Cleanup)) => {
                 if let Some(value) = startup.take() { value.discard_token(); }
-                if let Some(p) = process.take() { for drain in p.drains { drain.abort(); } }
-                state.send_replace(State::Failed(generation, Failure::Exited));
-                for waiter in waiters.drain(..) { let _ = waiter.send(Err(Failure::Exited)); }
+                let clean = matches!(status, Ok(status) if status.success() || status.code() == Some(2));
+                let error = if clean { Failure::Exited } else { Failure::Cleanup };
+                if clean && let Some(p) = process.take() { for drain in p.drains { drain.abort(); } }
+                state.send_replace(State::Failed(generation, error));
+                for waiter in waiters.drain(..) { let _ = waiter.send(Err(error)); }
             }
         }
     }

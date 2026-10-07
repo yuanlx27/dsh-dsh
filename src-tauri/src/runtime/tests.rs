@@ -80,6 +80,64 @@ async fn early_exit_does_not_automatically_restart_or_retain_the_token() {
     );
 }
 
+#[tokio::test]
+async fn unproven_cleanup_blocks_a_competing_generation() {
+    let (root, runtime) =
+        fixture("echo 'dsh web: http://127.0.0.1:54321/?token=fixture'\nsleep 0.1\nkill -KILL $$");
+    let startup = runtime.start().await.unwrap();
+    let mut state = runtime.subscribe();
+    tokio::time::timeout(Duration::from_secs(2), async {
+        while !matches!(*state.borrow_and_update(), State::Failed(_, _)) {
+            state.changed().await.unwrap();
+        }
+    })
+    .await
+    .unwrap();
+    assert_eq!(
+        runtime.state(),
+        State::Failed(startup.generation, Failure::Cleanup)
+    );
+    assert!(matches!(runtime.start().await, Err(Failure::Cleanup)));
+    assert_eq!(runtime.stop().await, Err(Failure::Cleanup));
+    assert_eq!(
+        fs::read_to_string(root.path().join("launch.count"))
+            .unwrap()
+            .lines()
+            .count(),
+        1
+    );
+}
+
+#[tokio::test]
+async fn startup_deadline_includes_authentication_and_revokes_the_token() {
+    let (_root, runtime) =
+        fixture("echo 'dsh web: http://127.0.0.1:54321/?token=fixture'\nIFS= read -r stop\nexit 0");
+    let startup = runtime.start().await.unwrap();
+    let mut state = runtime.subscribe();
+    tokio::time::pause();
+    tokio::time::advance(Duration::from_secs(16)).await;
+    tokio::time::resume();
+    tokio::time::timeout(Duration::from_secs(2), async {
+        while !matches!(*state.borrow_and_update(), State::Failed(_, _)) {
+            state.changed().await.unwrap();
+        }
+    })
+    .await
+    .unwrap();
+    assert_eq!(
+        runtime.state(),
+        State::Failed(startup.generation, Failure::Timeout)
+    );
+    assert!(startup.take_token_url().is_err());
+    assert_eq!(
+        runtime.complete(startup.generation).await,
+        Err(Failure::Unavailable)
+    );
+    let next = runtime.start().await.unwrap();
+    assert!(next.generation > startup.generation);
+    runtime.stop().await.unwrap();
+}
+
 #[test]
 fn inherited_injection_and_model_environment_is_not_the_command_environment() {
     for name in [

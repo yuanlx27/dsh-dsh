@@ -42,3 +42,6 @@ tempfile = "=3.27.0"
 objc2 = { version = "=0.6.5", optional = true }
 objc2-foundation = { version = "=0.3.2", optional = true }
 objc2-web-kit = { version = "=0.3.2", optional = true }
+
+[dev-dependencies]
+tokio = { version = "=1.53.2", features = ["test-util"] }
