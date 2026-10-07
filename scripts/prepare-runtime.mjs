@@ -68,8 +68,7 @@ try {
       const probe = spawnSync(node, ["--version"], { encoding: "utf8", env });
       if (probe.status !== 0 || probe.stdout.trim() !== `v${lock.nodeVersion}`) throw new Error("Downloaded Node version is incompatible.");
       run(node, [join(nodeRoot, "lib/node_modules/npm/bin/npm-cli.js"), "ci", "--prefix", join(root, "runtime"),
-        "--omit=dev", "--no-audit", "--no-fund",
-        "--allow-scripts=@deepseek-ai/dsh-subprocess-local,node-pty,koffi,protobufjs"], { env });
+        "--omit=dev", "--no-audit", "--no-fund"], { env });
       if (await sha256(join(root, "runtime/package-lock.json")) !== lock.dependencyLockHash) throw new Error("Production install changed the frozen lock.");
       // The launcher is private native process ownership, not another Harness engine.
       run("cargo", ["build", "--locked", "--release", "--manifest-path", "src-tauri/Cargo.toml", "--bin", "dsh-launcher"]);
