@@ -146,7 +146,11 @@ async fn launch() -> Result<(), ()> {
         eprintln!("Owned runtime cleanup failed; the launcher is retained.");
         std::future::pending::<()>().await;
     }
-    if unexpected { Err(()) } else { Ok(()) }
+    if unexpected {
+        // Exit 2 means the service exited unexpectedly, but its group was cleaned.
+        std::process::exit(2);
+    }
+    Ok(())
 }
 
 #[tokio::main]
