@@ -28,6 +28,7 @@
     "resources": {
       "resources/dsh/": "dsh/",
       "resources/runtime-manifest.json": "runtime-manifest.json",
+      "resources/runtime.lock.json": "runtime.lock.json",
       "resources/desktop-web.patch.yml": "desktop-web.patch.yml"
     },
     "macOS": {

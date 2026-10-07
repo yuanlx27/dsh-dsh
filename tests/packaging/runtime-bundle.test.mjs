@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { verifyRuntime } from "../../scripts/verify-runtime.mjs";
@@ -52,6 +52,7 @@ async function fixture(t) {
     },
   });
   await json(join(root, packagePath), { version, bin: { dsh: "lib/bin.js" } });
+  await copyFile(join(root, lockPath), join(root, "src-tauri/resources/dsh/package-lock.json"));
   for (const name of ["frontend", "native"]) {
     await json(join(root, `src-tauri/resources/dsh/node_modules/@fixture/${name}/package.json`), { version: "1.0.0" });
   }
@@ -69,6 +70,7 @@ async function fixture(t) {
   await chmod(join(root, nodePath), 0o700);
   await chmod(join(root, launcherPath), 0o700);
   const paths = [nodePath, launcherPath, packagePath, cliPath, assetPath, addonPath,
+    "src-tauri/resources/dsh/package-lock.json",
     ...["frontend", "native"].map((name) => `src-tauri/resources/dsh/node_modules/@fixture/${name}/package.json`)];
   const artifacts = await Promise.all(paths.map(async (path) => ({
     path, sha256: hash(await readFile(join(root, path))),

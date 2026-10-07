@@ -26,6 +26,7 @@ test("bundle declares fixed resources, both sidecars and local macOS-only delive
   assert.deepEqual(config.bundle.resources, {
     "resources/dsh/": "dsh/",
     "resources/runtime-manifest.json": "runtime-manifest.json",
+    "resources/runtime.lock.json": "runtime.lock.json",
     "resources/desktop-web.patch.yml": "desktop-web.patch.yml",
   });
   const cargo = await readFile(new URL(".cargo/config.toml", root), "utf8");
