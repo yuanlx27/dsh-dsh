@@ -28,6 +28,7 @@ node_modules/
 dist/
 build/
 coverage/
+.cache/
 src-tauri/binaries/
 src-tauri/resources/dsh/
 src-tauri/resources/runtime-manifest.json
