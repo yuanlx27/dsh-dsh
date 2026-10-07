@@ -181,7 +181,7 @@ fn owned_launcher(dir: &Path) -> std::process::Child {
     let cli = dir.join("fixture-service.sh");
     fs::write(
         &cli,
-        "echo helper-ready\ntrap 'exit 0' TERM INT\nwhile :; do sleep 1; done\n",
+        "echo $$ > helper.pid\necho helper-ready\ntrap 'exit 0' TERM INT\nwhile :; do sleep 1; done\n",
     )
     .unwrap();
     Command::new(env!("CARGO_BIN_EXE_dsh-launcher"))
@@ -216,6 +216,16 @@ fn owner_pipe_eof_cleans_only_the_owned_processes() {
     assert_eq!(&bytes, b"helper-ready\n");
     drop(launcher.stdin.take());
     wait_for_exit(&mut launcher);
+    let group: i32 = fs::read_to_string(temp.path().join("helper.pid"))
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+    assert_eq!(unsafe { libc::kill(-group, 0) }, -1);
+    assert_eq!(
+        std::io::Error::last_os_error().raw_os_error(),
+        Some(libc::ESRCH)
+    );
     assert!(sentinel.try_wait().unwrap().is_none());
     sentinel.kill().unwrap();
     sentinel.wait().unwrap();
