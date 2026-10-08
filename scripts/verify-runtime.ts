@@ -5,17 +5,26 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { inventory, sha256 } from "./runtime-files.mjs";
+import { inventory, sha256, type RuntimeArtifact } from "./runtime-files.ts";
+import type runtimeLock from "../runtime.lock.json";
+import type desktopConfig from "../src-tauri/tauri.conf.json";
+
+export type RuntimeManifest = Pick<typeof runtimeLock,
+  "desktopVersion" | "dshVersion" | "upstreamRevision" | "nodeVersion" | "target" |
+  "dependencyLockHash" | "nativeBuildNumber"> & { artifacts: RuntimeArtifact[] };
+interface DependencyResolution {
+  packages: Record<string, { version?: string; dev?: boolean; optional?: boolean; os?: string[]; cpu?: string[] }>;
+}
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const json = async (root, path) => JSON.parse(await readFile(join(root, path), "utf8"));
+const json = async <T>(root: string, path: string): Promise<T> => JSON.parse(await readFile(join(root, path), "utf8"));
 
-export async function verifyRuntime(projectRoot) {
-  const lock = await json(projectRoot, "runtime.lock.json");
-  const manifest = await json(projectRoot, "src-tauri/resources/runtime-manifest.json");
-  const pkg = await json(projectRoot, "package.json");
-  const config = await json(projectRoot, "src-tauri/tauri.conf.json");
-  const dsh = await json(projectRoot, "src-tauri/resources/dsh/node_modules/@deepseek-ai/dsh/package.json");
+export async function verifyRuntime(projectRoot: string): Promise<RuntimeManifest> {
+  const lock = await json<typeof runtimeLock>(projectRoot, "runtime.lock.json");
+  const manifest = await json<RuntimeManifest>(projectRoot, "src-tauri/resources/runtime-manifest.json");
+  const pkg = await json<{ version: string }>(projectRoot, "package.json");
+  const config = await json<typeof desktopConfig>(projectRoot, "src-tauri/tauri.conf.json");
+  const dsh = await json<{ version: string }>(projectRoot, "src-tauri/resources/dsh/node_modules/@deepseek-ai/dsh/package.json");
   assert.equal(lock.desktopVersion, "0.2.0-rc.2", "Unsupported canonical runtime baseline.");
   assert.equal(lock.dshVersion, lock.desktopVersion, "Runtime lock release mismatch.");
   assert.equal(lock.target, "aarch64-apple-darwin", "Unsupported runtime target.");
@@ -26,7 +35,7 @@ export async function verifyRuntime(projectRoot) {
   for (const version of [pkg.version, config.version, dsh.version, manifest.desktopVersion, manifest.dshVersion]) {
     assert.equal(version, lock.desktopVersion, "Canonical desktop/dsh prerelease mismatch.");
   }
-  for (const key of ["upstreamRevision", "nodeVersion", "target", "dependencyLockHash", "nativeBuildNumber"]) {
+  for (const key of ["upstreamRevision", "nodeVersion", "target", "dependencyLockHash", "nativeBuildNumber"] as const) {
     assert.equal(manifest[key], lock[key], `Runtime manifest ${key} mismatch.`);
   }
   assert.ok(Number.isSafeInteger(lock.nativeBuildNumber) && lock.nativeBuildNumber > 0, "Invalid native build number.");
@@ -49,16 +58,16 @@ export async function verifyRuntime(projectRoot) {
     "Runtime artifact inventory is missing, corrupt or incomplete.");
   assert.equal(await sha256(join(projectRoot, "src-tauri/resources/dsh/package-lock.json")), lock.dependencyLockHash,
     "Packaged dependency resolution changed.");
-  const dependencies = await json(projectRoot, "runtime/package-lock.json");
-  const supports = (list, target) => !list || (!list.includes(`!${target}`) &&
+  const dependencies = await json<DependencyResolution>(projectRoot, "runtime/package-lock.json");
+  const supports = (list: string[] | undefined, target: string) => !list || (!list.includes(`!${target}`) &&
     (list.every((item) => item.startsWith("!")) || list.includes(target)));
   for (const [path, expected] of Object.entries(dependencies.packages)) {
     if (!path || expected.dev || !supports(expected.os, "darwin") || !supports(expected.cpu, "arm64")) continue;
     try {
-      const installed = await json(projectRoot, `src-tauri/resources/dsh/${path}/package.json`);
+      const installed = await json<{ version: string }>(projectRoot, `src-tauri/resources/dsh/${path}/package.json`);
       assert.equal(installed.version, expected.version, "Installed dependency version mismatch.");
     } catch (error) {
-      if (error.code === "ENOENT" && expected.optional) continue;
+      if (error instanceof Error && "code" in error && error.code === "ENOENT" && expected.optional) continue;
       throw error;
     }
   }
@@ -67,10 +76,10 @@ export async function verifyRuntime(projectRoot) {
   const home = await mkdtemp(join(tmpdir(), "dsh-version-probe-"));
   try {
     const node = join(projectRoot, `src-tauri/binaries/node-${lock.target}`);
-    const env = { ...process.env, DSH_HOME: home };
+    const env: NodeJS.ProcessEnv = { ...process.env, DSH_HOME: home };
     delete env.NODE_OPTIONS;
     delete env.NODE_PATH;
-    function probe(args, expected) {
+    function probe(args: string[], expected: string) {
       const result = spawnSync(node, args, { cwd: home, env, encoding: "utf8", timeout: 5000, maxBuffer: 65536 });
       assert.equal(result.status, 0, "Bundled runtime probe failed.");
       assert.equal(result.stdout.trim(), expected, "Bundled runtime probe identity mismatch.");

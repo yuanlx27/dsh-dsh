@@ -1,22 +1,22 @@
-import test from "node:test";
+import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, type BinaryLike } from "node:crypto";
 import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { verifyRuntime } from "../../scripts/verify-runtime.mjs";
+import { verifyRuntime, type RuntimeManifest } from "../../scripts/verify-runtime.ts";
 
-const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const hash = (bytes: BinaryLike) => createHash("sha256").update(bytes).digest("hex");
 const version = "0.2.0-rc.2";
 const target = "aarch64-apple-darwin";
 const revision = "639ed015397290b3745d163aafe02ffee4aa3f84";
 
-async function json(path, value) {
+async function json(path: string, value: unknown) {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, JSON.stringify(value));
 }
 
-async function fixture(t) {
+async function fixture(t: TestContext) {
   const root = await mkdtemp(join(tmpdir(), "desktop runtime path with spaces "));
   t.after(() => rm(root, { recursive: true, force: true }));
   const nodePath = `src-tauri/binaries/node-${target}`;
@@ -83,9 +83,9 @@ async function fixture(t) {
   return { root, nodePath, packagePath, assetPath, addonPath, lockPath };
 }
 
-async function mutate(root, file, change) {
+async function mutate(root: string, file: string, change: (value: RuntimeManifest) => void) {
   const path = join(root, file);
-  const value = JSON.parse(await readFile(path, "utf8"));
+  const value: RuntimeManifest = JSON.parse(await readFile(path, "utf8"));
   change(value);
   await json(path, value);
 }
@@ -110,10 +110,10 @@ for (const file of ["package.json", "src-tauri/tauri.conf.json", manifestPath,
   });
 }
 
-for (const field of ["target", "upstreamRevision", "nodeVersion", "dependencyLockHash", "nativeBuildNumber"]) {
+for (const field of ["target", "upstreamRevision", "nodeVersion", "dependencyLockHash", "nativeBuildNumber"] as const) {
   test(`rejects inconsistent manifest ${field}`, async (t) => {
     const { root } = await fixture(t);
-    await mutate(root, manifestPath, (value) => { value[field] = field === "nativeBuildNumber" ? 2 : "invalid"; });
+    await mutate(root, manifestPath, (value) => { if (field === "nativeBuildNumber") value[field] = 2; else value[field] = "invalid"; });
     await assert.rejects(verifyRuntime(root));
   });
 }
@@ -124,7 +124,7 @@ test("rejects changed frozen dependency resolution", async (t) => {
   await assert.rejects(verifyRuntime(root));
 });
 
-for (const artifact of ["nodePath", "packagePath", "assetPath", "addonPath"]) {
+for (const artifact of ["nodePath", "packagePath", "assetPath", "addonPath"] as const) {
   for (const mode of ["missing", "corrupt", "uninventoried"]) {
     test(`rejects ${mode} ${artifact}`, async (t) => {
       const f = await fixture(t);
@@ -145,7 +145,7 @@ for (const [label, from, to] of [
     const { root, nodePath } = await fixture(t);
     const bytes = (await readFile(join(root, nodePath), "utf8")).replace(from, to);
     await writeFile(join(root, nodePath), bytes);
-    await mutate(root, manifestPath, (m) => { m.artifacts.find((a) => a.path === nodePath).sha256 = hash(bytes); });
+    await mutate(root, manifestPath, (m) => { const artifact = m.artifacts.find((a) => a.path === nodePath); assert.ok(artifact); artifact.sha256 = hash(bytes); });
     await assert.rejects(verifyRuntime(root));
   });
 }

@@ -7,15 +7,19 @@
     "node": "24.21.0"
   },
   "scripts": {
-    "build:frontend": "node scripts/build-frontend.mjs",
-    "runtime:prepare": "node scripts/prepare-runtime.mjs",
-    "runtime:verify": "node scripts/verify-runtime.mjs",
-    "test:packaging": "node --test tests/packaging/*.test.mjs",
+    "prebuild:frontend": "npm run check:source && npm run typecheck:tools",
+    "build:frontend": "node scripts/build-frontend.ts",
+    "runtime:prepare": "node scripts/prepare-runtime.ts",
+    "runtime:verify": "node scripts/verify-runtime.ts",
+    "test:packaging": "node --test tests/packaging/*.test.ts",
+    "check:source": "node --test tests/packaging/source-policy.test.ts",
+    "typecheck:tools": "tsc --project tsconfig.tools.json",
     "tauri:dev": "tauri dev --target aarch64-apple-darwin --features desktop",
     "tauri:build": "tauri build --target aarch64-apple-darwin --features desktop"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.12.1",
+    "@types/node": "24.19.1",
     "typescript": "5.9.3"
   }
 }

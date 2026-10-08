@@ -25,6 +25,7 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 - Transport is fixed-owned-service forwarding, not a general network proxy. Never expose/log/persist service token URLs or cookies, copy raw dsh diagnostics into shell surfaces, or silently fall back to authenticated localhost navigation.
 - Acceptance fixtures use isolated disposable data/workspace roots and fixture credentials. Reports record sanitized evidence, not keys, Cookie/Set-Cookie values or raw payloads. Upstream requirement gaps block release, not authorize a second engine.
 - Before adding code, follow the constitution's simplicity ladder; use native APIs, standard library and already selected dependencies before custom helpers. Keep tracked prose English.
+- Commit only TypeScript for JS/TS-layer source, including tooling and tests; no tracked `.js`/`.mjs`/`.cjs`/`.jsx`. Ignore generated JavaScript and upstream dependencies. Native Rust/HTML/CSS/configuration and existing Spec Kit shell tools remain. Enforce with `npm run check:source`; type-check implemented tooling with `npm run typecheck:tools`.
 
 ## Phase 1: Setup (Shared Infrastructure)
 
@@ -32,7 +33,7 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 
 - [X] T001 Review the existing six A1–A6 decisions and FR/NFR/SC coverage before affected implementation; create `tests/acceptance/README.md` with scenario-to-story mapping, fixture safety rules, O/R identities, required environments and pending release gates, referring to `specs/001-deepseek-harness-desktop/plan.md` without creating a runtime reference registry.
 - [X] T002 Initialize exact compatible Tauri 2, TypeScript 5.x and Rust dependencies in `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, and `rust-toolchain.toml`; pin Rust stable >=1.85/edition 2024, reqwest, tokio-tungstenite and compatible macOS WKWebView bindings, use version `0.2.0-rc.2`, and add minimal `src-tauri/build.rs` and `src-tauri/src/main.rs` entry points.
-- [X] T003 Configure the minimal TypeScript/static build and Node built-in test runner in `tsconfig.json`, `scripts/build-frontend.mjs`, and `package.json`; expose `runtime:prepare`, `runtime:verify`, `test:packaging`, `tauri:dev`, and `tauri:build` commands matching `specs/001-deepseek-harness-desktop/quickstart.md` (commands must fail when required deliverables are missing).
+- [X] T003 Configure the minimal TypeScript/static build and Node built-in test runner in `tsconfig.json`, `scripts/build-frontend.ts`, and `package.json`; expose `runtime:prepare`, `runtime:verify`, `test:packaging`, `tauri:dev`, and `tauri:build` commands matching `specs/001-deepseek-harness-desktop/quickstart.md` (commands must fail when required deliverables are missing).
 - [X] T004 [P] Configure macOS 14/arm64-only bundling, immutable resource paths, `binaries/node` and `binaries/dsh` externalBin entries, canonical prerelease version and derived numeric Apple build metadata in `src-tauri/tauri.conf.json`; keep update/telemetry integrations absent.
 - [X] T005 [P] Define disposable workspace, credential, approval/action and service-failure fixture preparation instructions in `tests/acceptance/fixtures.md`; specify separate dsh roots and observable controlled commands/file changes, prohibit real keys in tracked files, and reserve a 1,000-message fixture using upstream-supported records rather than invented schemas.
 
@@ -42,11 +43,11 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 
 **Purpose**: Shared immutable runtime, shell-owned persistence and process ownership. Complete this phase before story implementation.
 
-- [X] T006 [P] Write runtime-bundle contract tests in `tests/packaging/runtime-bundle.test.mjs` covering exact prerelease equality, lock hashes, artifact inventory, Node version/arm64, CLI version, frontend/native dependency closure, missing/corrupt resources and installation paths containing spaces.
+- [X] T006 [P] Write runtime-bundle contract tests in `tests/packaging/runtime-bundle.test.ts` covering exact prerelease equality, lock hashes, artifact inventory, Node version/arm64, CLI version, frontend/native dependency closure, missing/corrupt resources and installation paths containing spaces.
 - [X] T007 [P] Write native foundational tests in `src-tauri/tests/foundation.rs` for preferences schema rejection/atomic write failure/onscreen bounds, private-directory modes, bounded readiness parsing (64 KiB line limit), invalid/LAN URLs, timeout/early exit, owner-pipe cleanup and owned-process-only shutdown; use helper test processes rather than unrelated running dsh instances.
 - [X] T008 Record the pinned Node SHA-256 and dsh tarball integrity from `specs/001-deepseek-harness-desktop/research.md`, R identity, exact production dependency resolution and native build number in `runtime.lock.json` and `runtime/package.json`/`runtime/package-lock.json`; resolve the complete closure once at build time and freeze subsequent installs.
-- [X] T009 Implement locked build-time staging in `scripts/prepare-runtime.mjs`: verify downloads, use the frozen production closure, stage target-suffixed Node and launcher resources, include dynamic packages/Web assets/native addons in `src-tauri/resources/dsh/`, and generate `src-tauri/resources/runtime-manifest.json` with all data-model fields and artifact hashes; support final inventory/hash regeneration after nested signing in T052, keep download-integrity checks separate, and never fetch dependencies at installed-app launch.
-- [X] T010 Implement `scripts/verify-runtime.mjs` and `src-tauri/src/bundle.rs` to enforce the bundle contract at build and startup: compare complete root/Tauri/manifest/package/CLI versions, probe bundled Node, validate target/inventory/hash closure and derive Apple metadata without losing canonical prerelease identity; reject unsafe bundles before task-capable navigation.
+- [X] T009 Implement locked build-time staging in `scripts/prepare-runtime.ts`: verify downloads, use the frozen production closure, stage target-suffixed Node and launcher resources, include dynamic packages/Web assets/native addons in `src-tauri/resources/dsh/`, and generate `src-tauri/resources/runtime-manifest.json` with all data-model fields and artifact hashes; support final inventory/hash regeneration after nested signing in T052, keep download-integrity checks separate, and never fetch dependencies at installed-app launch.
+- [X] T010 Implement `scripts/verify-runtime.ts` and `src-tauri/src/bundle.rs` to enforce the bundle contract at build and startup: compare complete root/Tauri/manifest/package/CLI versions, probe bundled Node, validate target/inventory/hash closure and derive Apple metadata without losing canonical prerelease identity; reject unsafe bundles before task-capable navigation.
 - [X] T011 [P] Implement only shell Application Preferences in `src-tauri/src/preferences.rs`: app-data root at `0700`, atomic user-only JSON with schemaVersion 1, current-notice revision and usable window bounds; reject unsupported formats and surface write failures without storing workspace/task/history/model/authentication state.
 - [X] T012 [P] Implement the minimal native sidecar in `src-tauri/src/bin/dsh-launcher.rs`: launch absolute bundled Node/CLI paths in an owned process group, supervise the owner-liveness pipe and signals, gracefully terminate then force owned survivors after the shell's seven-second bound, wait for exit, and never scan/kill unrelated services or disappear before child cleanup.
 - [X] T013 Implement the one-generation runtime owner and readiness parser in `src-tauri/src/runtime.rs`: use `web --host 127.0.0.1 --port 0 --no-open` plus private DSH_HOME/stable cwd/validated overlay, remove inherited Node injection/model-key/telemetry variables without stripping ordinary approved-command environment, coalesce startup/retry, accept only the current child's bounded announcement, and enforce a 15-second total startup deadline including later auth/boot preparation.
@@ -64,7 +65,7 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 ### Tests for User Story 1
 
 - [X] T016 [P] [US1] Write authenticated-transport contract tests in `src-tauri/tests/transport.rs` for private root-token exchange (required 303/cookie, redirects disabled), destination/path/header rejection, auth stripping, 300 MiB input bound, binary/multipart fidelity, cancellation, ordered replies, generation invalidation and no authentication in returned boot data.
-- [X] T017 [P] [US1] Write transport-shim tests in `tests/packaging/transport-adapter.test.mjs` for R's fetch/openStream hook installation, same-app raw upload/download routing, external-fetch exclusion, opaque stream frames/uplink/downlink/multiplex ordering, cancellation, reconnect without replay and stale-handle rejection; do not replace global WebSocket or add task logic.
+- [X] T017 [P] [US1] Write transport-shim tests in `tests/packaging/transport-adapter.test.ts` for R's fetch/openStream hook installation, same-app raw upload/download routing, external-fetch exclusion, opaque stream frames/uplink/downlink/multiplex ordering, cancellation, reconnect without replay and stale-handle rejection; do not replace global WebSocket or add task logic.
 - [X] T018 [P] [US1] Write lifecycle/notice/quit tests in `src-tauri/tests/lifecycle.rs` for acknowledgement revision/write failure, repeated launch, retained close/show identity, one ownerless quit decision, Stay/dismissal/dialog failure, late responses, unknown work status and waiting for actual owned exit.
 - [X] T019 [P] [US1] Define the native WKWebView acceptance procedure and report fields in `tests/acceptance/startup-security.md` for first launch, denied app-data write, clean/offline runtime, occupied 3080, credential lifecycle/read-only-source removal refusal, read-only/missing workspace, unauthorized frames/windows/origins, redirects, streams, renderer secret absence and unauthenticated local/remote access; include expected results from FR-002–005/FR-025 and SC-010.
 
@@ -96,7 +97,7 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 ### Tests for User Story 2
 
 - [ ] T034 [P] [US2] Specify and prepare controlled task/approval/Stop fixtures in `tests/acceptance/tasks-control.md` using R's existing permission policy; cover all FR-007 states, policy/action/target display, denial/dismissal never approving, in-flight Stop without rollback claims, identical/rapid/queued/steered submissions following dsh, reconnect/hide-show without replay, and multi-session workspace switching without shell confirmation/inspection.
-- [ ] T035 [P] [US2] Add adapter failure/cancellation/reconnect regression tests in `tests/packaging/task-forwarding.test.mjs` using opaque recorded fixture envelopes from R (without keys); assert one dispatch per explicit upstream request, preserve legitimate identical-text submissions, never resubmit after reconnect/recreation, and do not introduce task admission/business state in the shim.
+- [ ] T035 [P] [US2] Add adapter failure/cancellation/reconnect regression tests in `tests/packaging/task-forwarding.test.ts` using opaque recorded fixture envelopes from R (without keys); assert one dispatch per explicit upstream request, preserve legitimate identical-text submissions, never resubmit after reconnect/recreation, and do not introduce task admission/business state in the shim.
 
 ### Implementation and Verification for User Story 2
 
@@ -116,7 +117,7 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 ### Tests for User Story 3
 
 - [ ] T040 [P] [US3] Define upstream-owned persistence/recovery cases in `tests/acceptance/history.md`: duplicate/blank titles with distinct identities, two-workspace follow-ups, completed/interrupted sessions, pending approval, recoverable incomplete tail versus corrupt/unsupported/missing records, discovery omission not implying no history, and moved/restored workspace without directory replacement or migration.
-- [ ] T041 [P] [US3] Create a fixture-generation helper in `tests/acceptance/create-history-fixture.mjs` using supported pinned upstream session facilities to generate 1,000-message and two-workspace histories in disposable roots; validate committed records using upstream rules and fail rather than fabricate a replacement storage schema.
+- [ ] T041 [P] [US3] Create a fixture-generation helper in `tests/acceptance/create-history-fixture.ts` using supported pinned upstream session facilities to generate 1,000-message and two-workspace histories in disposable roots; validate committed records using upstream rules and fail rather than fabricate a replacement storage schema.
 
 ### Integration and Verification for User Story 3
 
@@ -151,8 +152,8 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 
 **Purpose**: Qualify the locally installed ad-hoc build and remaining cross-story criteria; document deferred public-distribution gates separately. No automatic updater or extra platforms.
 
-- [ ] T052 [P] Add local ad-hoc signing/build procedure in `scripts/package-macos.mjs` and `src-tauri/entitlements.plist`: stage the runtime, ad-hoc sign nested Node/launcher/native addons with only required entitlements, regenerate the final runtime inventory/hashes using T009, sign the outer arm64 .app, and package .app/DMG; verify signatures and generated Apple numeric metadata against the canonical manifest version. Do not modify inventoried resources or the manifest after outer signing. Document Developer ID signing, hardened-runtime/JIT qualification and notarization/stapling as deferred public-release work, with future credentials supplied only through untracked inputs; do not require those credentials or claim public-distribution validation for local completion.
-- [ ] T053 [P] Add installed-distribution cases in `tests/packaging/distribution.test.mjs` for target-suffixed sidecars, closure/native addon loading, no startup download, paths with spaces, complete prerelease/About identity, corrupt/missing artifacts, wrong architecture, generated plist mapping and manifest equality with final signed nested resources; ensure `npm run test:packaging` discovers all packaging tests.
+- [ ] T052 [P] Add local ad-hoc signing/build procedure in `scripts/package-macos.ts` and `src-tauri/entitlements.plist`: stage the runtime, ad-hoc sign nested Node/launcher/native addons with only required entitlements, regenerate the final runtime inventory/hashes using T009, sign the outer arm64 .app, and package .app/DMG; verify signatures and generated Apple numeric metadata against the canonical manifest version. Do not modify inventoried resources or the manifest after outer signing. Document Developer ID signing, hardened-runtime/JIT qualification and notarization/stapling as deferred public-release work, with future credentials supplied only through untracked inputs; do not require those credentials or claim public-distribution validation for local completion.
+- [ ] T053 [P] Add installed-distribution cases in `tests/packaging/distribution.test.ts` for target-suffixed sidecars, closure/native addon loading, no startup download, paths with spaces, complete prerelease/About identity, corrupt/missing artifacts, wrong architecture, generated plist mapping and manifest equality with final signed nested resources; ensure `npm run test:packaging` discovers all packaging tests.
 - [ ] T054 [P] Execute keyboard-only and VoiceOver qualification for startup, safety notice, failure/Retry and ownerless quit focus/name/status transitions in `tests/acceptance/accessibility.md`; verify the embedding preserves upstream keyboard/assistive capability, record findings in `tests/acceptance/reports/accessibility.md`, and fix shell-only semantics/styles in `src/shell/index.html`/`src/shell/styles.css` without rebuilding upstream UI.
 - [ ] T055 Run the locally installed ad-hoc-signed .app/DMG on a clean account with no Node/npm/dsh and, when available, separately on macOS 14 Apple Silicon; execute clean/offline/path-space/occupied-port/native-addon/bundle-mismatch/app-data-denial/crash/repeated-launch cases from `specs/001-deepseek-harness-desktop/quickstart.md`, verify installed resource hashes against the final manifest, and record actual OS, signing mode, versions and remaining failures in `tests/acceptance/reports/distribution.md`. Missing minimum-OS evidence remains pending and blocks a minimum-OS-qualified claim. Developer ID/notarization/Gatekeeper distribution checks remain deferred, never passing by substitution or by disabling system security controls.
 - [ ] T056 Execute final SC-010 native installed-build access tests and idle/setup/task traffic capture in `tests/acceptance/reports/security-network.md`: reject unauthorized window/origin/child-frame/stale-handle and unauthenticated index/API/WebSocket access, deny remote direct access/general native authority, verify authentication absence in renderer/cookie jar/diagnostics, preserve permitted public non-sensitive assets, and show only configured model/explicitly approved action destinations with excluded telemetry/feedback/plugin surfaces disabled.
@@ -200,7 +201,7 @@ US2 T034–T039             US3 T040–T044            US4 T045–T051
 
 ```text
 Wave 1: T016 src-tauri/tests/transport.rs
-        T017 tests/packaging/transport-adapter.test.mjs
+        T017 tests/packaging/transport-adapter.test.ts
         T018 src-tauri/tests/lifecycle.rs
         T019 tests/acceptance/startup-security.md
 Wave 2 (foundation/relevant tests ready):
@@ -215,7 +216,7 @@ Join before T024; serialize subsequent integration.
 
 ```text
 T034 tests/acceptance/tasks-control.md
-T035 tests/packaging/task-forwarding.test.mjs
+T035 tests/packaging/task-forwarding.test.ts
 Join before T036; use separate roots for standalone R and the product.
 ```
 
@@ -223,7 +224,7 @@ Join before T036; use separate roots for standalone R and the product.
 
 ```text
 T040 tests/acceptance/history.md
-T041 tests/acceptance/create-history-fixture.mjs
+T041 tests/acceptance/create-history-fixture.ts
 Join before T042; do not generate fixtures in live user DSH_HOME.
 ```
 

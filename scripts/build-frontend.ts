@@ -22,6 +22,6 @@ try {
     },
   });
 } catch (error) {
-  console.error(`Frontend build failed: ${error.message}`);
+  console.error(`Frontend build failed: ${error instanceof Error ? error.message : "Unknown failure."}`);
   process.exitCode = 1;
 }

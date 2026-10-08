@@ -143,7 +143,7 @@ src-tauri/
 ├── binaries/                # staged node and dsh target-specific executables
 └── resources/dsh/           # immutable installed package closure and metadata
 scripts/
-└── prepare-runtime.mjs
+└── prepare-runtime.ts
 tests/
 ├── packaging/
 └── acceptance/

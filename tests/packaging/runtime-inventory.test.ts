@@ -1,13 +1,13 @@
-import test from "node:test";
+import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { inventory } from "../../scripts/runtime-files.mjs";
+import { inventory } from "../../scripts/runtime-files.ts";
 
-async function fixture(t) {
+async function fixture(t: TestContext) {
   const root = await mkdtemp(join(tmpdir(), "runtime inventory "));
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(join(root, "src-tauri/resources/dsh"), { recursive: true });
@@ -22,11 +22,11 @@ test("inventory records final bytes and preserves internal symlink identity", as
   await symlink("asset.js", join(root, "src-tauri/resources/dsh/link.js"));
   const first = await inventory(root, "aarch64-apple-darwin");
   assert.equal(first.length, 4);
-  assert.equal(first.find((a) => a.path.endsWith("link.js")).symlink, "asset.js");
+  assert.equal(first.find((a) => a.path.endsWith("link.js"))?.symlink, "asset.js");
   await writeFile(join(root, "src-tauri/resources/dsh/asset.js"), "after-nested-signing");
   const second = await inventory(root, "aarch64-apple-darwin");
-  assert.notEqual(first.find((a) => a.path.endsWith("asset.js")).sha256,
-    second.find((a) => a.path.endsWith("asset.js")).sha256);
+  assert.notEqual(first.find((a) => a.path.endsWith("asset.js"))?.sha256,
+    second.find((a) => a.path.endsWith("asset.js"))?.sha256);
 });
 
 test("inventory rejects symlinks escaping immutable runtime closure", async (t) => {
@@ -37,7 +37,7 @@ test("inventory rejects symlinks escaping immutable runtime closure", async (t) 
 });
 
 test("prepare help is read-only and unknown flags fail promptly", () => {
-  const script = fileURLToPath(new URL("../../scripts/prepare-runtime.mjs", import.meta.url));
+  const script = fileURLToPath(new URL("../../scripts/prepare-runtime.ts", import.meta.url));
   const help = spawnSync(process.execPath, [script, "--help"], { encoding: "utf8" });
   assert.equal(help.status, 0);
   assert.match(help.stdout, /--inventory-only/);

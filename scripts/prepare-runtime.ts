@@ -1,12 +1,14 @@
 import { createHash } from "node:crypto";
 import { createWriteStream } from "node:fs";
 import { chmod, copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { spawnSync } from "node:child_process";
+import { spawnSync, type SpawnSyncOptions } from "node:child_process";
+import type { BinaryToTextEncoding } from "node:crypto";
+import type runtimeLock from "../runtime.lock.json";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { inventory, sha256 } from "./runtime-files.mjs";
+import { inventory, sha256 } from "./runtime-files.ts";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const help = `Prepare the locked macOS arm64 runtime at build time.
@@ -19,12 +21,12 @@ Examples:
 See specs/001-deepseek-harness-desktop/quickstart.md for signing and acceptance.
 `;
 
-function run(command, args, options = {}) {
+function run(command: string, args: string[], options: SpawnSyncOptions = {}) {
   const result = spawnSync(command, args, { cwd: root, stdio: "inherit", ...options });
   if (result.error || result.status !== 0) throw new Error(`Build-time command failed: ${command}`);
 }
 
-async function download(url, path, algorithm, expected, encoding) {
+async function download(url: string, path: string, algorithm: string, expected: string, encoding: BinaryToTextEncoding) {
   const response = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(120_000) });
   if (!response.ok || !response.body) throw new Error("Pinned runtime download failed; retry preparation with registry access.");
   await pipeline(response.body, createWriteStream(path, { mode: 0o600 }));
@@ -43,7 +45,7 @@ try {
   if (values.help) {
     process.stdout.write(help);
   } else {
-    const lock = JSON.parse(await readFile(join(root, "runtime.lock.json"), "utf8"));
+    const lock: typeof runtimeLock = JSON.parse(await readFile(join(root, "runtime.lock.json"), "utf8"));
     if (lock.target !== "aarch64-apple-darwin" || process.platform !== "darwin" || process.arch !== "arm64") {
       throw new Error("Runtime preparation requires macOS Apple Silicon.");
     }
@@ -62,7 +64,7 @@ try {
       await rm(nodeRoot, { recursive: true, force: true });
       run("/usr/bin/tar", ["-xzf", nodeArchive, "-C", cache]);
       const node = join(nodeRoot, "bin/node");
-      const env = { ...process.env, PATH: `${join(nodeRoot, "bin")}:${process.env.PATH || ""}` };
+      const env: NodeJS.ProcessEnv = { ...process.env, PATH: `${join(nodeRoot, "bin")}:${process.env.PATH || ""}` };
       delete env.NODE_OPTIONS;
       delete env.NODE_PATH;
       const probe = spawnSync(node, ["--version"], { encoding: "utf8", env });
@@ -93,6 +95,6 @@ try {
     console.error(`Runtime inventory generated: ${manifest.artifacts.length} artifacts. Run npm run runtime:verify next.`);
   }
 } catch (error) {
-  console.error(`Runtime preparation failed: ${error.message}`);
+  console.error(`Runtime preparation failed: ${error instanceof Error ? error.message : "Unknown failure."}`);
   process.exitCode = 1;
 }

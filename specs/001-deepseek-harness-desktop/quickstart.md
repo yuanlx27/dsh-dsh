@@ -2,10 +2,19 @@
 
 ## Status and prerequisites
 
-This repository currently contains design artifacts only. The following npm
-scripts are implementation deliverables, not existing runnable commands yet:
-`runtime:prepare`, `runtime:verify`, `test:packaging`, `tauri:dev`,
-`tauri:build`. Do not treat missing scripts as successful validation.
+Runtime foundation tooling and native authentication are implemented; desktop
+UI/transport/lifecycle integration and installed qualification remain unfinished.
+`runtime:prepare`, `runtime:verify`, `check:source` and `typecheck:tools` are
+runnable. Full Rust/Node suites still fail on pending HTTP/lifecycle/shim modules;
+Tauri builds require the remaining shell/app deliverables. See the actual results
+in `tests/acceptance/reports/`, not this planned end-to-end command sequence.
+
+All committed JS/TS-layer source is TypeScript. Node 24.21.0 directly runs tooling
+and tests with erasable types; `tsc` separately checks implemented tooling/tests.
+The pending T027 adapter contract is explicitly excluded from the tooling type
+check until its module exists, but remains in `test:packaging` and fails there.
+Downloaded dependencies and browser-generated JavaScript remain Git-ignored;
+native Rust and existing Spec Kit shell scripts are unchanged.
 
 Implementation prerequisites:
 - macOS Apple Silicon, Xcode Command Line Tools, pinned Rust toolchain;
@@ -24,6 +33,8 @@ Tests that intentionally edit files/run commands must use disposable directories
 
 ```sh
 npm ci
+npm run check:source
+npm run typecheck:tools
 npm run runtime:prepare
 npm run runtime:verify
 cargo test --manifest-path src-tauri/Cargo.toml
@@ -32,12 +43,12 @@ npm run tauri:dev
 npm run tauri:build -- --target aarch64-apple-darwin --bundles app,dmg
 ```
 
-Expected: locked build-time downloads only; matching full desktop/dsh version;
+Expected after remaining implementation: locked build-time downloads only; matching full desktop/dsh version;
 bundled Node/dsh and complete frontend/native runtime; tests passing; generated
 app/DMG. `runtime:verify` must fail on a deliberately mismatched manifest/package.
 Development success is not a substitute for installed native-build acceptance.
 The command sequence above does not establish final signing/manifest ordering;
-T052's planned `scripts/package-macos.mjs` procedure must sign nested resources,
+T052's planned `scripts/package-macos.ts` procedure must sign nested resources,
 regenerate final hashes, sign the outer app and package it before final acceptance.
 Transport tests must cover actual WKWebView frame identity and both native HTTP
 and WebSocket paths; Electron-only tests do not prove the Tauri adaptation.

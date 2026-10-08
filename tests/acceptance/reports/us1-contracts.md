@@ -1,5 +1,8 @@
 # US1 contract-first checkpoint
 
+Historical `.mjs` paths below refer to original executions; tooling/tests now
+use `.ts`. See [source migration](typescript-sources.md) for current commands.
+
 This report records test development, not installed-app acceptance. R remains
 `@deepseek-ai/dsh@0.2.0-rc.2`; no O packages or business engine were introduced.
 

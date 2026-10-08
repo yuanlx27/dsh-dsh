@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
@@ -8,23 +8,23 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 
-async function fixture(t) {
+async function fixture(t: TestContext) {
   const dir = await mkdtemp(join(tmpdir(), "desktop frontend with spaces "));
   t.after(() => rm(dir, { recursive: true, force: true }));
   await mkdir(join(dir, "scripts"));
-  await cp(join(root, "scripts/build-frontend.mjs"), join(dir, "scripts/build-frontend.mjs"));
+  await cp(join(root, "scripts/build-frontend.ts"), join(dir, "scripts/build-frontend.ts"));
   await cp(join(root, "tsconfig.json"), join(dir, "tsconfig.json"));
   await symlink(join(root, "node_modules"), join(dir, "node_modules"), "dir");
   return dir;
 }
 
-function build(dir) {
-  return spawnSync(process.execPath, [join(dir, "scripts/build-frontend.mjs")], {
+function build(dir: string) {
+  return spawnSync(process.execPath, [join(dir, "scripts/build-frontend.ts")], {
     cwd: tmpdir(), encoding: "utf8",
   });
 }
 
-async function source(dir, ts) {
+async function source(dir: string, ts: string) {
   await mkdir(join(dir, "src/shell"), { recursive: true });
   await writeFile(join(dir, "src/shell/index.html"), "<!doctype html><script type=module src=main.js></script>");
   await writeFile(join(dir, "src/shell/styles.css"), ":focus-visible { outline: solid; }");
