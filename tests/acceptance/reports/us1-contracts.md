@@ -61,6 +61,24 @@ passed. The full Rust suite intentionally remains red until T020/T025 exist.
   service launch/owned exit; actual retained DOM and ownerless native dialog
   qualification remain T032/T033 and the T019 procedure.
 
-T019 native procedure is still pending.
+## T019: installed WKWebView qualification procedure
+
+- Added `tests/acceptance/startup-security.md` with explicit fresh/saved launch,
+  denied writes, clean/offline/path-space/occupied-port cases; upstream credential
+  lifecycle/per-operation/read-only-source/modes and workspace access cases;
+  actual native frame/window/origin/generation rejection, redirects, byte/stream
+  fidelity/cancellation, secret absence and unauthenticated local/remote access.
+- Includes safe fixture preparation, actual-WK metadata requirements, validity of
+  protected-route probes, sanitized per-scenario report fields, accepted bearer
+  limitations and separate pending minimum-OS/public-signing gates.
+- Procedure review/static ID checks pass. **No native scenario has been run.**
+
+The US1 test-definition wave T016–T019 is complete. Next is T020–T023, followed
+by native admission/integration and T025–T031. Contract APIs may be reconciled
+with those implementations without weakening their behavioral assertions.
+Full Rust/Node suites remain intentionally red for missing implementation;
+18 existing Rust and 37 existing Node regressions passed before the new suites.
+No installed native, auth, lifecycle, performance or release qualification is
+claimed by this checkpoint.
 Installed candidate, actual WKScriptMessage metadata, real R cookie admission,
 macOS 14 qualification, performance and public signing gates remain pending.
