@@ -6,6 +6,8 @@ use serde_json::Value;
 use std::sync::{Arc, Mutex};
 use tokio::sync::watch;
 
+#[cfg(test)]
+mod http_tests;
 #[cfg(all(target_os = "macos", feature = "native-bridge"))]
 pub mod macos;
 #[cfg(test)]

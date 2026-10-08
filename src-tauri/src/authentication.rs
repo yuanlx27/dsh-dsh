@@ -43,6 +43,7 @@ struct Credentials {
 pub struct ServiceSession {
     generation: u64,
     credentials: Mutex<Option<Credentials>>,
+    invalidated: tokio::sync::watch::Sender<bool>,
 }
 impl ServiceSession {
     pub fn is_current(&self, generation: u64) -> bool {
@@ -51,6 +52,15 @@ impl ServiceSession {
     pub fn invalidate(&self) {
         if let Ok(mut credentials) = self.credentials.lock() {
             *credentials = None;
+        }
+        self.invalidated.send_replace(true);
+    }
+    pub async fn revoked(&self, generation: u64) {
+        let mut changes = self.invalidated.subscribe();
+        loop {
+            if !self.is_current(generation) || changes.changed().await.is_err() {
+                return;
+            }
         }
     }
     // Native consumers can construct a request without retaining a mutex guard
@@ -118,6 +128,7 @@ pub async fn authenticate(
             .to_owned();
         let origin_secret = token_url.origin().ascii_serialization();
         let session = Arc::new(ServiceSession {
+            invalidated: tokio::sync::watch::channel(false).0,
             generation,
             credentials: Mutex::new(Some(Credentials {
                 origin: token_url,

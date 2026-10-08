@@ -1,6 +1,6 @@
 //! Native policy fixtures, not proof of installed WK metadata behavior.
 use super::*;
-fn fixture() -> (Arc<Bridge>, Binding, Sender, Request) {
+pub(super) fn fixture() -> (Arc<Bridge>, Binding, Sender, Request) {
     let bridge = Arc::new(Bridge::new());
     let binding = bridge.bind(41).unwrap();
     bridge.set_runtime(7, true, true).unwrap();

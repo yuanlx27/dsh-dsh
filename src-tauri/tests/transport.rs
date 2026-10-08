@@ -217,15 +217,16 @@ async fn service_redirects_fail_closed_and_response_auth_is_stripped() {
         );
     }
     assert_eq!(f.count(), 7);
-    let mut api = f.api.lock().unwrap();
-    api.status = 200;
-    api.headers = vec![
-        ("set-cookie".into(), f.cookie.clone()),
-        ("connection".into(), "x-hop".into()),
-        ("x-hop".into(), "private".into()),
-        ("x-fixture".into(), "preserve".into()),
-    ];
-    drop(api);
+    {
+        let mut api = f.api.lock().unwrap();
+        api.status = 200;
+        api.headers = vec![
+            ("set-cookie".into(), f.cookie.clone()),
+            ("connection".into(), "x-hop".into()),
+            ("x-hop".into(), "private".into()),
+            ("x-fixture".into(), "preserve".into()),
+        ];
+    }
     let reply = transport
         .fetch(7, request("/api/fixture"), signal)
         .await
@@ -282,6 +283,7 @@ async fn cancellation_and_generation_revocation_deny_already_queued_replies() {
     cancel.send(true).unwrap();
     assert!(reply.next_chunk().await.is_err());
     cancel.send(false).unwrap();
+    assert!(reply.next_chunk().await.is_err()); // Cancellation is terminal for this handle.
     let mut reply = transport
         .fetch(7, request("/api/fixture"), signal.clone())
         .await
