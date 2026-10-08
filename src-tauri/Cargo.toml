@@ -44,4 +44,5 @@ objc2-foundation = { version = "=0.3.2", optional = true }
 objc2-web-kit = { version = "=0.3.2", optional = true }
 
 [dev-dependencies]
+base64 = "=0.22.1"
 tokio = { version = "=1.53.2", features = ["test-util"] }
