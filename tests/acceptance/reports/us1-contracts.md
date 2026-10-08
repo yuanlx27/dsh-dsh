@@ -28,6 +28,22 @@ Regression checks at this checkpoint: 18 existing Rust foundation/library tests
 and 37 existing Node packaging tests passed; `cargo fmt` and `git diff --check`
 passed. The full Rust suite intentionally remains red until T020/T025 exist.
 
-T017/T018 automated contracts and T019 native procedure are still pending.
+## T017: upstream hook adapter contracts
+
+- Added `tests/packaging/transport-adapter.test.mjs`, using Node 24's native
+  TypeScript loader rather than requiring the unfinished shell build.
+- Covers R's fetch/openStream hook shape, byte-exact raw upload/download routing,
+  external/immutable-asset exclusion, custom-scheme authority (not null-origin)
+  comparisons, destination/token rejection, opaque concurrent streams, duplicate
+  item preservation, uplink disposal, cancellation, no adapter retry/replay and
+  detached hook rejection. It never replaces global WebSocket.
+- Command: pinned Node 24.21.0 `node --test
+  tests/packaging/transport-adapter.test.mjs`.
+- Actual initial result: **red**, exit 1, `ERR_MODULE_NOT_FOUND` for
+  `src/transport.ts` (T027). This also intentionally makes the aggregate Node
+  packaging command red. Hook fakes do not prove actual multiplex wire handling,
+  native transfer handles or frame authorization; T026/T032 must qualify those.
+
+T018 automated contracts and T019 native procedure are still pending.
 Installed candidate, actual WKScriptMessage metadata, real R cookie admission,
 macOS 14 qualification, performance and public signing gates remain pending.
