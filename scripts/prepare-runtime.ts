@@ -9,6 +9,7 @@ import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { inventory, sha256 } from "./runtime-files.ts";
+import { prepareWebAssets } from "./prepare-web-assets.ts";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const help = `Prepare the locked macOS arm64 runtime at build time.
@@ -87,6 +88,7 @@ try {
       await cp(join(root, "runtime/node_modules"), join(resources, "dsh/node_modules"), { recursive: true, verbatimSymlinks: true });
       for (const name of ["package.json", "package-lock.json"]) await copyFile(join(root, "runtime", name), join(resources, "dsh", name));
       await copyFile(join(root, "runtime.lock.json"), join(resources, "runtime.lock.json"));
+      await prepareWebAssets(resources);
     }
     const { desktopVersion, dshVersion, upstreamRevision, nodeVersion, target, dependencyLockHash, nativeBuildNumber } = lock;
     const manifest = { desktopVersion, dshVersion, upstreamRevision, nodeVersion, target, dependencyLockHash, nativeBuildNumber,
