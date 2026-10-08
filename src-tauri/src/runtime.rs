@@ -40,6 +40,11 @@ pub fn parse_readiness(line: &str) -> Result<Option<Url>, Failure> {
         return Err(Failure::Announcement);
     }
     let url = Url::parse(raw).map_err(|_| Failure::Announcement)?;
+    validate_token_url(&url)?;
+    Ok(Some(url))
+}
+
+pub(crate) fn validate_token_url(url: &Url) -> Result<(), Failure> {
     let query: Vec<_> = url.query_pairs().collect();
     if url.scheme() != "http"
         || url.host_str() != Some("127.0.0.1")
@@ -54,7 +59,7 @@ pub fn parse_readiness(line: &str) -> Result<Option<Url>, Failure> {
     {
         return Err(Failure::Announcement);
     }
-    Ok(Some(url))
+    Ok(())
 }
 
 pub async fn read_readiness<R: AsyncBufRead + Unpin>(

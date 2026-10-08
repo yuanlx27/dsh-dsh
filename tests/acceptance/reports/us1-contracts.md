@@ -73,7 +73,13 @@ passed. The full Rust suite intentionally remains red until T020/T025 exist.
   limitations and separate pending minimum-OS/public-signing gates.
 - Procedure review/static ID checks pass. **No native scenario has been run.**
 
-The US1 test-definition wave T016–T019 is complete. Next is T020–T023, followed
+The US1 test-definition wave T016–T019 is complete. T020 is now implemented;
+see [authentication checkpoint](authentication.md) for 10 executed auth tests,
+28 passing Rust tests per debug/release run and a detected 303 regression.
+Auth tests are independently runnable in `src-tauri/tests/authentication.rs`;
+HTTP assertions remain in `transport.rs`, without placeholder implementations.
+The initial red results above are historical, not the current auth result.
+Next is T021–T023, followed
 by native admission/integration and T025–T031. Contract APIs may be reconciled
 with those implementations without weakening their behavioral assertions.
 Full Rust/Node suites remain intentionally red for missing implementation;
