@@ -1,0 +1,21 @@
+# Extra overlay for pinned R's Web profile, never the reserved Desktop profile.
+# Use ordinary disabled rows, not removal or wholesale config replacement.
+- id: desktop-product-telemetry
+  disabled: true
+- id: product-analytics
+  disabled: true
+# Feedback-only session exports are also excluded; retain the local event/log
+# and permission services, not this network exporter or feedback producers.
+- id: session-telemetry-otel
+  disabled: true
+- id: command-feedback
+  disabled: true
+- id: message-feedback
+  disabled: true
+- id: ui-message-feedback
+  disabled: true
+# R has no install-only UI switch: disable its sidebar manager entry, including
+# registry probing. Keep built-in settings/inventory and the upstream provider
+# used internally by agent presets; do not replace their RPCs or task machinery.
+- id: ui-plugin-manager
+  disabled: true
