@@ -167,6 +167,18 @@ impl Application {
             failure,
         }
     }
+    pub fn save_bounds(&self, bounds: preferences::Bounds) -> io::Result<()> {
+        let local = self
+            .local
+            .lock()
+            .map_err(|_| io::Error::other("Application unavailable."))?;
+        if local.disposed {
+            return Err(io::Error::other("Application unavailable."));
+        }
+        let mut saved = preferences::load(&self.root)?;
+        saved.window_bounds = Some(bounds);
+        preferences::save(&self.root, &saved)
+    }
     pub fn acknowledge(&self, revision: &str) -> io::Result<Snapshot> {
         let mut local = self
             .local

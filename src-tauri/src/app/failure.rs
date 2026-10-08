@@ -1,11 +1,17 @@
 //! Preserve Wry's navigation delegate while observing native page/process loss.
+use crate::window::{Navigation, navigation};
+use block2::DynBlock;
 use objc2::{
     DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send,
     rc::Retained,
     runtime::{AnyObject, NSObject, NSObjectProtocol, ProtocolObject, Sel},
 };
+use objc2_app_kit::NSWorkspace;
 use objc2_foundation::NSError;
-use objc2_web_kit::{WKNavigation, WKNavigationDelegate, WKWebView};
+use objc2_web_kit::{
+    WKNavigation, WKNavigationAction, WKNavigationActionPolicy, WKNavigationDelegate,
+    WKNavigationType, WKWebView,
+};
 use std::{cell::Cell, rc::Rc};
 struct State {
     previous: Option<Retained<ProtocolObject<dyn WKNavigationDelegate>>>,
@@ -31,6 +37,19 @@ define_class!(
         }
     }
     unsafe impl WKNavigationDelegate for Observer {
+        #[unsafe(method(webView:decidePolicyForNavigationAction:decisionHandler:))]
+        fn policy(&self,view:&WKWebView,action:&WKNavigationAction,decision:&DynBlock<dyn Fn(WKNavigationActionPolicy)>){
+            // Actual WK link activation, never a renderer-supplied gesture flag.
+            let request=unsafe {action.request()};
+            let native=request.URL();
+            let disposition=native.as_ref().and_then(|u|u.absoluteString()).and_then(|s|url::Url::parse(&s.to_string()).ok()).map_or(Navigation::Deny,|url|navigation(&url,unsafe {action.navigationType()}==WKNavigationType::LinkActivated));
+            if disposition != Navigation::Owned {
+                decision.call((WKNavigationActionPolicy::Cancel,));
+                if disposition==Navigation::External && let Some(url)=native {NSWorkspace::sharedWorkspace().openURL(&url);}
+            } else if let Some(p)=&self.ivars().previous && p.respondsToSelector(objc2::sel!(webView:decidePolicyForNavigationAction:decisionHandler:)) {
+                unsafe {p.webView_decidePolicyForNavigationAction_decisionHandler(view,action,decision);}
+            } else {decision.call((WKNavigationActionPolicy::Allow,));}
+        }
         #[unsafe(method(webView:didFailProvisionalNavigation:withError:))]
         fn provisional(&self, view:&WKWebView, navigation:Option<&WKNavigation>, error:&NSError) {
             self.failure(navigation,error);

@@ -11,3 +11,4 @@ pub mod preferences;
 pub mod protocol;
 pub mod runtime;
 pub mod stream_transport;
+pub mod window;
