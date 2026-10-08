@@ -2,29 +2,31 @@
 // Fake native hooks establish adapter behavior, not WKWebView admission evidence.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { installTransport } from "../../src/transport.ts";
+import { installTransport, type TransportPage } from "../../src/transport.ts";
+interface HttpCall { path: string; init: RequestInit }
+interface StreamCall { endpoint: string; payload: unknown; signal: AbortSignal; uplink?: AsyncIterable<unknown> }
 
 function fixture() {
-  const http = [], streams = [], external = [];
+  const http: HttpCall[] = [], streams: StreamCall[] = [], external: unknown[][] = [];
   const failure = { active: false, attempts: 0 };
-  const originalFetch = async (...args) => {
+  const originalFetch = async (...args: Parameters<typeof fetch>) => {
     external.push(args);
     return new Response("unmediated");
   };
   const WebSocket = class UnchangedWebSocket {};
-  const page = {
+  const page: TransportPage & { WebSocket: typeof WebSocket } = {
     location: { href: "dsh-app://app/index.html" },
     fetch: originalFetch,
     WebSocket,
   };
   const native = {
-    async fetch(path, init) {
+    async fetch(path: string, init: RequestInit) {
       http.push({ path, init });
       return new Response(new Uint8Array([0, 255, 1]), {
         status: 200, headers: { "content-type": "application/octet-stream" },
       });
     },
-    async *openStream(endpoint, payload, signal, uplink) {
+    async *openStream(endpoint: string, payload: unknown, signal: AbortSignal, uplink?: AsyncIterable<unknown>) {
       failure.attempts++;
       if (failure.active) throw new Error("fixture carrier lost");
       streams.push({ endpoint, payload, signal, uplink });
@@ -36,7 +38,7 @@ function fixture() {
   return { page, native, failure, http, streams, external, originalFetch, WebSocket, dispose };
 }
 
-async function collect(iterable) {
+async function collect(iterable: AsyncIterable<unknown>) {
   const values = [];
   for await (const value of iterable) values.push(value);
   return values;
@@ -44,7 +46,7 @@ async function collect(iterable) {
 
 test("install R fetch/openStream hooks without a service origin, cookie, or WebSocket replacement", () => {
   const f = fixture();
-  const hooks = f.page.__DSH_TRANSPORT__;
+  const hooks = f.page.__DSH_TRANSPORT__!;
   assert.equal(typeof hooks.fetch, "function");
   assert.equal(typeof hooks.openStream, "function");
   assert.equal(hooks.ownsHost, true);
@@ -59,7 +61,7 @@ test("R's explicit fetch hook preserves method, body bytes, and cancellation", a
   const f = fixture();
   const controller = new AbortController();
   const body = new Uint8Array([255, 0, 195, 169]);
-  const response = await f.page.__DSH_TRANSPORT__.fetch("api/fixture", {
+  const response = await f.page.__DSH_TRANSPORT__!.fetch("api/fixture", {
     method: "POST", body, signal: controller.signal,
     headers: { "content-type": "application/octet-stream" },
   });
@@ -67,9 +69,9 @@ test("R's explicit fetch hook preserves method, body bytes, and cancellation", a
   assert.equal(f.http.length, 1);
   assert.equal(f.http[0].path, "/api/fixture");
   assert.equal(f.http[0].init.method, "POST");
-  assert.equal(f.http[0].init.signal.aborted, false);
+  assert.equal(f.http[0].init.signal!.aborted, false);
   controller.abort();
-  assert.equal(f.http[0].init.signal.aborted, true);
+  assert.equal(f.http[0].init.signal!.aborted, true);
   assert.deepEqual(new Uint8Array(await new Response(f.http[0].init.body).arrayBuffer()), body);
   assert.equal(f.external.length, 0);
   f.dispose();
@@ -109,7 +111,7 @@ test("the explicit service hook cannot select another destination or a token pat
   for (const path of [
     "https://example.invalid/api", "http://127.0.0.1:1/api", "//other/api",
     "dsh-app://shell/api/fixture", "/api/../secret", "/api?token=fixture",
-  ]) await assert.rejects(() => f.page.__DSH_TRANSPORT__.fetch(path, {}));
+  ]) await assert.rejects(() => f.page.__DSH_TRANSPORT__!.fetch(path, {}));
   assert.equal(f.http.length, 0);
   assert.equal(f.external.length, 0);
   f.dispose();
@@ -118,7 +120,7 @@ test("the explicit service hook cannot select another destination or a token pat
 test("pre-aborted fetches are not dispatched", async () => {
   const f = fixture();
   const signal = AbortSignal.abort();
-  await assert.rejects(() => f.page.__DSH_TRANSPORT__.fetch("/api/fixture", { signal }), { name: "AbortError" });
+  await assert.rejects(() => f.page.__DSH_TRANSPORT__!.fetch("/api/fixture", { signal }), { name: "AbortError" });
   assert.equal(f.http.length, 0);
   f.dispose();
 });
@@ -129,7 +131,7 @@ test("opaque stream payloads, uplink and downlink retain identity and order", as
   const payload = { args: { fixture: [0, "same", "same"] } };
   const items = [{ unknown: 1 }, { unknown: 1 }, null, [255, 0]];
   const uplink = { async *[Symbol.asyncIterator]() { yield* items; } };
-  const frames = await collect(f.page.__DSH_TRANSPORT__.openStream("fixture.remote", payload, signal, uplink));
+  const frames = await collect(f.page.__DSH_TRANSPORT__!.openStream("fixture.remote", payload, signal, uplink));
   assert.deepEqual(frames, [{ fixture: "opaque", payload }, ...items]);
   assert.equal(f.streams.length, 1);
   assert.equal(f.streams[0].payload, payload);
@@ -143,8 +145,8 @@ test("opaque stream payloads, uplink and downlink retain identity and order", as
 test("concurrent logical streams do not mix replies or deduplicate equal items", async () => {
   const f = fixture();
   const signal = new AbortController().signal;
-  const hooks = f.page.__DSH_TRANSPORT__;
-  const uplink = (marker) => ({ async *[Symbol.asyncIterator]() { yield marker; yield marker; } });
+  const hooks = f.page.__DSH_TRANSPORT__!;
+  const uplink = (marker: string) => ({ async *[Symbol.asyncIterator]() { yield marker; yield marker; } });
   const [left, right] = await Promise.all([
     collect(hooks.openStream("left", { id: 1 }, signal, uplink("left"))),
     collect(hooks.openStream("right", { id: 2 }, signal, uplink("right"))),
@@ -162,12 +164,12 @@ test("stream cancellation reaches the native carrier and releases uplink", async
   const uplink = {
     async *[Symbol.asyncIterator]() { try { yield "one"; yield "two"; } finally { released = true; } },
   };
-  const iterator = f.page.__DSH_TRANSPORT__.openStream("fixture", {}, controller.signal, uplink)[Symbol.asyncIterator]();
+  const iterator = f.page.__DSH_TRANSPORT__!.openStream("fixture", {}, controller.signal, uplink)[Symbol.asyncIterator]();
   await iterator.next();
   await iterator.next();
   controller.abort();
   assert.equal(f.streams[0].signal.aborted, true);
-  await iterator.return();
+  await iterator.return!(undefined);
   assert.equal(released, true);
   f.dispose();
 });
@@ -175,10 +177,10 @@ test("stream cancellation reaches the native carrier and releases uplink", async
 test("carrier failure is propagated; only an explicit upstream call opens again", async () => {
   const f = fixture();
   f.failure.active = true;
-  await assert.rejects(() => collect(f.page.__DSH_TRANSPORT__.openStream("fixture", {}, new AbortController().signal)));
+  await assert.rejects(() => collect(f.page.__DSH_TRANSPORT__!.openStream("fixture", {}, new AbortController().signal)));
   await new Promise((resolve) => setTimeout(resolve, 30));
   assert.equal(f.failure.attempts, 1);
-  await assert.rejects(() => collect(f.page.__DSH_TRANSPORT__.openStream("fixture", {}, new AbortController().signal)));
+  await assert.rejects(() => collect(f.page.__DSH_TRANSPORT__!.openStream("fixture", {}, new AbortController().signal)));
   assert.equal(f.failure.attempts, 2);
   assert.equal(f.http.length, 0);
   f.dispose();
@@ -186,7 +188,7 @@ test("carrier failure is propagated; only an explicit upstream call opens again"
 
 test("detachment rejects stale hook references without replay and restores raw fetch", async () => {
   const f = fixture();
-  const old = f.page.__DSH_TRANSPORT__;
+  const old = f.page.__DSH_TRANSPORT__!;
   f.dispose();
   f.dispose();
   assert.equal(f.page.fetch, f.originalFetch);

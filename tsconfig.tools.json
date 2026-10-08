@@ -21,8 +21,5 @@
     "scripts/**/*.ts",
     "tests/packaging/**/*.ts",
     "tests/fixtures/**/*.ts"
-  ],
-  "exclude": [
-    "tests/packaging/transport-adapter.test.ts"
   ]
 }
