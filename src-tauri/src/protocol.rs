@@ -101,6 +101,18 @@ pub struct Protocol {
     bootstrap: Bootstrap,
 }
 impl Protocol {
+    #[cfg(test)]
+    pub(crate) fn fixture(boot: &BootData) -> std::sync::Arc<Self> {
+        std::sync::Arc::new(Self {
+            app: BTreeMap::new(),
+            shell: BTreeMap::new(),
+            bootstrap: Bootstrap {
+                globals: boot.globals.clone(),
+                scripts: vec![],
+                preloads: vec![],
+            },
+        })
+    }
     // Caller first verifies the bundle. Reads are hash-checked again and cached
     // so later filesystem replacement cannot change already-prepared responses.
     pub fn new(

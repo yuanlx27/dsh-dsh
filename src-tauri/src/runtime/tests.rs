@@ -1,7 +1,7 @@
 use super::*;
 use std::{fs, os::unix::fs::PermissionsExt};
 
-fn fixture(script: &str) -> (tempfile::TempDir, Runtime) {
+pub(crate) fn fixture(script: &str) -> (tempfile::TempDir, Runtime) {
     let root = tempfile::tempdir().unwrap();
     let launcher = root.path().join("helper-launcher.sh");
     fs::write(

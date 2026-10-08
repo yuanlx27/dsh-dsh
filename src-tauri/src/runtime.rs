@@ -19,7 +19,7 @@ use tokio::{
 use url::Url;
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
 pub use crate::errors::Failure;
 

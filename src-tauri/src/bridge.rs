@@ -70,6 +70,9 @@ struct State {
     ready: bool,
     notice: bool,
     retired: bool,
+    observed: Option<watch::Receiver<crate::runtime::State>>,
+    #[cfg(any(test, feature = "native-bridge"))]
+    document_fragment: Option<String>,
 }
 pub struct Bridge {
     state: Mutex<State>,
@@ -96,6 +99,20 @@ impl Bridge {
             state: Mutex::new(State::default()),
             changes,
         }
+    }
+    // Native runtime witness is checked at admission/final delivery, not only
+    // eventually by the application observer task.
+    pub(crate) fn observe_runtime(
+        &self,
+        runtime: watch::Receiver<crate::runtime::State>,
+    ) -> Result<(), Denied> {
+        let mut state = self.state.lock().map_err(|_| Denied)?;
+        self.change(&mut state)?;
+        state.observed = Some(runtime);
+        Ok(())
+    }
+    pub(crate) fn owns(&self, permit: &Permit) -> bool {
+        std::ptr::eq(self, Arc::as_ptr(&permit.bridge))
     }
     fn change(&self, state: &mut State) -> Result<(), Denied> {
         state.epoch = state.epoch.checked_add(1).ok_or(Denied)?;
@@ -145,7 +162,28 @@ impl Bridge {
             generation: state.next_window,
         };
         state.owner = Some(binding);
+        state.document_fragment = None;
         Ok(binding)
+    }
+    #[cfg(any(test, feature = "native-bridge"))]
+    fn expect_document(&self, binding: Binding, fragment: String) -> Result<(), Denied> {
+        let mut state = self.state.lock().map_err(|_| Denied)?;
+        if state.owner != Some(binding) || fragment.is_empty() {
+            return Err(Denied);
+        }
+        self.change(&mut state)?;
+        state.document_fragment = Some(fragment);
+        Ok(())
+    }
+    #[cfg(feature = "native-bridge")]
+    pub(crate) fn detach_view(&self, view: usize) {
+        if let Ok(mut state) = self.state.lock()
+            && state.owner.is_some_and(|b| b.view == view)
+        {
+            state.owner = None;
+            state.document_fragment = None;
+            let _ = self.change(&mut state);
+        }
     }
     #[cfg(any(test, feature = "native-bridge"))]
     fn detach(&self, binding: Binding) {
@@ -153,6 +191,7 @@ impl Bridge {
             && state.owner == Some(binding)
         {
             state.owner = None;
+            state.document_fragment = None;
             let _ = self.change(&mut state);
         }
     }
@@ -178,6 +217,13 @@ impl Bridge {
         })
     }
 }
+#[cfg(any(test, feature = "native-bridge"))]
+fn observed_ready(state: &State) -> bool {
+    state
+        .observed
+        .as_ref()
+        .is_none_or(|r| *r.borrow() == crate::runtime::State::Ready(state.runtime_generation))
+}
 impl Permit {
     pub fn window_generation(&self) -> u64 {
         self.window_generation
@@ -191,9 +237,13 @@ impl Permit {
     // Hold the native epoch through final delivery, not merely an earlier check.
     pub(crate) fn with_current<T>(&self, work: impl FnOnce() -> T) -> Result<T, Denied> {
         let state = self.bridge.state.lock().map_err(|_| Denied)?;
+        let witness = state.observed.as_ref().map(|r| r.borrow());
         let current = {
             state.epoch == self.epoch
                 && state.ready
+                && witness
+                    .as_ref()
+                    .is_none_or(|r| **r == crate::runtime::State::Ready(state.runtime_generation))
                 && state.notice
                 && state
                     .owner
@@ -203,7 +253,9 @@ impl Permit {
         if !current {
             return Err(Denied);
         }
-        Ok(work())
+        let result = work();
+        drop(witness);
+        Ok(result)
     }
     pub fn same_scope(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.bridge, &other.bridge)
@@ -224,6 +276,7 @@ impl Permit {
 fn validate_sender(state: &State, binding: Binding, sender: &Sender) -> Result<(), Denied> {
     if state.owner != Some(binding)
         || !state.ready
+        || !observed_ready(state)
         || !state.notice
         || state.runtime_generation == 0
         || sender.message_view != binding.view
@@ -234,6 +287,15 @@ fn validate_sender(state: &State, binding: Binding, sender: &Sender) -> Result<(
         || sender.port != 0
         || !app_url(sender.frame_url.as_deref())
         || !app_url(sender.view_url.as_deref())
+        || state.document_fragment.as_ref().is_some_and(|expected| {
+            [sender.frame_url.as_deref(), sender.view_url.as_deref()]
+                .into_iter()
+                .any(|input| {
+                    input
+                        .and_then(|s| url::Url::parse(s).ok())
+                        .is_none_or(|u| u.fragment() != Some(expected.as_str()))
+                })
+        })
     {
         return Err(Denied);
     }

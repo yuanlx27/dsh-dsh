@@ -155,6 +155,9 @@ impl Registration {
     pub fn window_generation(&self) -> u64 {
         self.binding.generation
     }
+    pub fn expect_document(&self, fragment: String) -> Result<(), Denied> {
+        self.bridge.expect_document(self.binding, fragment)
+    }
     pub fn handler_name(&self) -> String {
         self.name.to_string()
     }

@@ -23,6 +23,32 @@ pub(super) fn fixture() -> (Arc<Bridge>, Binding, Sender, Request) {
     (bridge, binding, sender, request)
 }
 #[test]
+fn live_runtime_witness_denies_before_an_observer_can_update_bridge_flags() {
+    let (bridge, binding, sender, request) = fixture();
+    let (state, receiver) = watch::channel(crate::runtime::State::Ready(7));
+    bridge.observe_runtime(receiver).unwrap();
+    let permit = bridge.admit(binding, &sender, &request).unwrap();
+    state.send_replace(crate::runtime::State::Failed(
+        7,
+        crate::errors::Failure::Exited,
+    ));
+    assert!(!permit.is_current());
+    assert!(permit.with_current(|| panic!("stale reply")).is_err());
+    assert!(bridge.admit(binding, &sender, &request).is_err());
+}
+#[test]
+fn recreated_document_requires_native_frame_and_view_fragment_not_new_body_claims() {
+    let (bridge, binding, mut sender, request) = fixture();
+    let old = bridge.admit(binding, &sender, &request).unwrap();
+    let fragment = "desktop-window=1&desktop-runtime=7";
+    bridge.expect_document(binding, fragment.into()).unwrap();
+    assert!(!old.is_current());
+    sender.view_url = Some(format!("dsh-app://app/#{fragment}"));
+    assert!(bridge.admit(binding, &sender, &request).is_err());
+    sender.frame_url = sender.view_url.clone();
+    assert!(bridge.admit(binding, &sender, &request).is_ok());
+}
+#[test]
 fn permits_from_different_native_owners_cannot_address_each_others_handles() {
     let (left, lb, ls, lr) = fixture();
     let (right, rb, rs, rr) = fixture();
