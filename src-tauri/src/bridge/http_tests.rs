@@ -2,8 +2,33 @@ use super::tests::fixture;
 #[path = "../../tests/transport/fixture.rs"]
 mod io;
 use crate::http_transport::{Body, HttpRequest, Transport};
+use crate::stream_transport::{Frame, StreamTransport};
 use reqwest::{Method, header::HeaderMap};
 use tokio::sync::watch;
+
+#[tokio::test]
+async fn admitted_ws_revokes_a_waiting_read_and_rejects_late_uplink() {
+    let f = io::Fixture::new().await;
+    let auth = f.authenticate().await.unwrap();
+    let (bridge, binding, sender, request) = fixture();
+    let permit = bridge.admit(binding, &sender, &request).unwrap();
+    let (_cancel, signal) = watch::channel(false);
+    let transport = StreamTransport::new(auth.session);
+    let mut stream = transport
+        .connect_admitted(&permit, signal.clone())
+        .await
+        .unwrap();
+    let uplink = stream.sender();
+    bridge.detach(binding);
+    assert!(
+        tokio::time::timeout(std::time::Duration::from_secs(1), stream.next_frame())
+            .await
+            .unwrap()
+            .is_err()
+    );
+    assert!(uplink.send(0, Frame::Text("stale".into())).await.is_err());
+    assert!(transport.connect_admitted(&permit, signal).await.is_err());
+}
 
 #[tokio::test]
 async fn admitted_http_denies_revoked_window_before_dispatch_and_during_headers() {

@@ -53,6 +53,7 @@ pub struct Fixture {
     pub api: Arc<Mutex<Response>>,
     pub requests: Arc<Mutex<Vec<RecordedRequest>>>,
     pub api_entered: Arc<Notify>,
+    pub ws_headers: Arc<Mutex<HeaderMap>>,
     server: JoinHandle<()>,
 }
 impl Fixture {
@@ -85,6 +86,8 @@ impl Fixture {
         let api = Arc::new(Mutex::new(Response::ok(b"opaque response")));
         let requests = Arc::new(Mutex::new(Vec::new()));
         let api_entered = Arc::new(Notify::new());
+        let ws_headers = Arc::new(Mutex::new(HeaderMap::new()));
+        let websocket_headers = ws_headers.clone();
         let (e, i, a, r, entered) = (
             exchange.clone(),
             index.clone(),
@@ -95,6 +98,27 @@ impl Fixture {
         let server = tokio::spawn(async move {
             loop {
                 let (mut socket, _) = listener.accept().await.unwrap();
+                let mut peek = [0; 256];
+                let size = socket.peek(&mut peek).await.unwrap();
+                if peek[..size].starts_with(b"GET /api/remote.mux ") {
+                    use futures_util::{SinkExt, StreamExt};
+                    let headers = websocket_headers.clone();
+                    // The upstream Callback API fixes a large ErrorResponse type.
+                    #[allow(clippy::result_large_err)]
+                    let mut ws = tokio_tungstenite::accept_hdr_async(socket, move |request: &tokio_tungstenite::tungstenite::handshake::server::Request, response| {
+                        *headers.lock().unwrap() = request.headers().clone();
+                        Ok(response)
+                    }).await.unwrap();
+                    while let Some(Ok(message)) = ws.next().await {
+                        if message.is_close() {
+                            break;
+                        }
+                        if ws.send(message).await.is_err() {
+                            break;
+                        }
+                    }
+                    continue;
+                }
                 let mut bytes = Vec::new();
                 let header_end = loop {
                     let mut chunk = [0; 8192];
@@ -193,6 +217,7 @@ impl Fixture {
             api,
             requests,
             api_entered,
+            ws_headers,
             server,
         }
     }
