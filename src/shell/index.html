@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeepSeek Harness Desktop</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./main.js"></script>
+</head>
+<body>
+  <main>
+    <h1>DeepSeek Harness Desktop</h1>
+    <p>Developer preview · Local desktop shell</p>
+    <section aria-labelledby="status-title">
+      <h2 id="status-title">Local service</h2>
+      <p id="status" role="status" aria-live="polite">Starting the local service…</p>
+      <p id="next-action"></p>
+      <div class="actions">
+        <button id="enter" type="button" disabled>Open Harness</button>
+        <button id="retry" type="button" hidden>Retry</button>
+        <button id="open-notice" type="button">Safety notice</button>
+      </div>
+    </section>
+    <p>Harness owns model settings, workspaces, conversations and permissions.
+      Closing a window keeps its service running. Use Quit to stop the application.</p>
+  </main>
+  <dialog id="notice" aria-labelledby="notice-title" aria-describedby="notice-summary">
+    <h2 id="notice-title" tabindex="-1">Experimental-operation safety notice</h2>
+    <p id="notice-summary">Harness is experimental. It may run commands and modify files
+      using your account's permissions. Permission prompts do not guarantee isolation or undo.</p>
+    <p>Review proposed actions and permissions carefully. Use a suitable workspace,
+      keep backups and avoid exposing sensitive files or credentials.</p>
+    <p>Acknowledgement is saved only in local application data for this notice revision.
+      Dismissing this notice does not acknowledge it or grant access.</p>
+    <p id="notice-status" role="status" aria-live="polite"></p>
+    <div class="actions">
+      <button id="accept-notice" type="button">I understand — save acknowledgement</button>
+      <button id="dismiss-notice" type="button">Dismiss without accepting</button>
+    </div>
+  </dialog>
+</body>
+</html>
