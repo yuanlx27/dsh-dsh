@@ -20,7 +20,7 @@ async function fixture(t: TestContext) {
   const root = await mkdtemp(join(tmpdir(), "desktop runtime path with spaces "));
   t.after(() => rm(root, { recursive: true, force: true }));
   const nodePath = `src-tauri/binaries/node-${target}`;
-  const launcherPath = `src-tauri/binaries/dsh-${target}`;
+  const launcherPath = `src-tauri/binaries/dsh-launcher-${target}`;
   const packagePath = "src-tauri/resources/dsh/node_modules/@deepseek-ai/dsh/package.json";
   const cliPath = "src-tauri/resources/dsh/node_modules/@deepseek-ai/dsh/lib/bin.js";
   const assetPath = "src-tauri/resources/dsh/node_modules/@fixture/frontend/dist/index.html";

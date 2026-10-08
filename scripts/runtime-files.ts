@@ -39,7 +39,7 @@ export async function inventory(root: string, target: string): Promise<RuntimeAr
   }
   for (const path of [
     `src-tauri/binaries/node-${target}`,
-    `src-tauri/binaries/dsh-${target}`,
+    `src-tauri/binaries/dsh-launcher-${target}`,
     "src-tauri/resources/dsh",
   ]) await visit(join(root, path));
   for (const path of ["src-tauri/resources/runtime.lock.json", "src-tauri/resources/desktop-web.patch.yml"]) {

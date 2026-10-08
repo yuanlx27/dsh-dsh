@@ -23,7 +23,7 @@
     ],
     "externalBin": [
       "binaries/node",
-      "binaries/dsh"
+      "binaries/dsh-launcher"
     ],
     "resources": {
       "resources/dsh/": "dsh/",

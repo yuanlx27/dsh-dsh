@@ -24,7 +24,7 @@ async fn staged_and_space_containing_native_layouts_pass_the_real_bundle_gate() 
     let binaries = temp.path().join("Contents/MacOS");
     fs::create_dir_all(&binaries).unwrap();
     fs::copy(staged.node(), binaries.join("node")).unwrap();
-    fs::copy(staged.launcher(), binaries.join("dsh")).unwrap();
+    fs::copy(staged.launcher(), binaries.join("dsh-launcher")).unwrap();
     let resources = temp.path().join("Contents/Resources");
     // The immutable resource tree is shared for this layout probe, not an installed distribution.
     std::os::unix::fs::symlink(&staged.resources, &resources).unwrap();

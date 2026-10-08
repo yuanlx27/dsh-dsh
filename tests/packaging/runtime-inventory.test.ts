@@ -12,7 +12,7 @@ async function fixture(t: TestContext) {
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(join(root, "src-tauri/resources/dsh"), { recursive: true });
   await mkdir(join(root, "src-tauri/binaries"));
-  for (const name of ["node", "dsh"]) await writeFile(join(root, `src-tauri/binaries/${name}-aarch64-apple-darwin`), name);
+  for (const name of ["node", "dsh-launcher"]) await writeFile(join(root, `src-tauri/binaries/${name}-aarch64-apple-darwin`), name);
   await writeFile(join(root, "src-tauri/resources/dsh/asset.js"), "before-signing");
   return root;
 }

@@ -48,7 +48,7 @@ export async function verifyRuntime(projectRoot: string): Promise<RuntimeManifes
     assert.ok(typeof artifact.path === "string" &&
       !artifact.path.includes("\\") && !artifact.path.split("/").some((p) => ["", ".", ".."].includes(p)) &&
       (artifact.path.startsWith("src-tauri/resources/") || artifact.path === `src-tauri/binaries/node-${lock.target}` ||
-       artifact.path === `src-tauri/binaries/dsh-${lock.target}`), "Unsafe runtime inventory path.");
+       artifact.path === `src-tauri/binaries/dsh-launcher-${lock.target}`), "Unsafe runtime inventory path.");
     assert.ok(!seen.has(artifact.path), "Duplicate runtime inventory path.");
     seen.add(artifact.path);
     assert.match(artifact.sha256, /^[a-f0-9]{64}$/, "Invalid artifact hash.");

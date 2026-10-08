@@ -8,7 +8,7 @@ Developer ID signing, notarization/stapling and public-distribution qualificatio
 are deferred until credentials are available. Ad-hoc signing does not establish
 Apple notarization or Gatekeeper acceptance elsewhere; do not disable system
 security controls for validation.
-Tauri `bundle.externalBin` contains `binaries/node` and `binaries/dsh`;
+Tauri `bundle.externalBin` contains `binaries/node` and `binaries/dsh-launcher`;
 staging filenames include the target suffix required by Tauri. The dsh binary is
 a minimal native launcher because upstream's actual CLI bin is JavaScript.
 

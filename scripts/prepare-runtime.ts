@@ -80,8 +80,8 @@ try {
       await mkdir(binaries, { recursive: true });
       await mkdir(resources, { recursive: true });
       await copyFile(node, join(binaries, `node-${lock.target}`));
-      await copyFile(join(root, `src-tauri/target/${lock.target}/release/dsh-launcher`), join(binaries, `dsh-${lock.target}`));
-      for (const name of ["node", "dsh"]) await chmod(join(binaries, `${name}-${lock.target}`), 0o755);
+      await copyFile(join(root, `src-tauri/target/${lock.target}/release/dsh-launcher`), join(binaries, `dsh-launcher-${lock.target}`));
+      for (const name of ["node", "dsh-launcher"]) await chmod(join(binaries, `${name}-${lock.target}`), 0o755);
       await rm(join(resources, "dsh"), { recursive: true, force: true });
       await mkdir(join(resources, "dsh"));
       // Preserve dynamic packages, web assets and native addons without JS rebundling.

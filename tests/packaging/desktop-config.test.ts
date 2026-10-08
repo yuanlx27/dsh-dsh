@@ -8,6 +8,15 @@ const root = new URL("../../", import.meta.url);
 const config = JSON.parse(await readFile(new URL("src-tauri/tauri.conf.json", root), "utf8"));
 const pkg = JSON.parse(await readFile(new URL("package.json", root), "utf8"));
 
+test("sidecar basenames cannot collide with top-level dev resource directories", () => {
+  const sidecars: string[] = config.bundle.externalBin;
+  const resources: string[] = Object.values(config.bundle.resources);
+  for (const path of sidecars) {
+    const name = path.split("/").at(-1);
+    assert.ok(!resources.some(target => target.split("/")[0] === name), `${name} collides with a dev resource directory`);
+  }
+});
+
 test("canonical prerelease identity is separate from numeric Apple metadata", () => {
   assert.equal(config.version, pkg.version);
   assert.equal(config.version, "0.2.0-rc.2");
@@ -20,7 +29,7 @@ test("canonical prerelease identity is separate from numeric Apple metadata", ()
 
 test("bundle declares fixed resources, both sidecars and local macOS-only delivery", async () => {
   assert.deepEqual(config.bundle.targets, ["app", "dmg"]);
-  assert.deepEqual(config.bundle.externalBin, ["binaries/node", "binaries/dsh"]);
+  assert.deepEqual(config.bundle.externalBin, ["binaries/node", "binaries/dsh-launcher"]);
   assert.equal(config.bundle.macOS.minimumSystemVersion, "14.0");
   assert.equal(config.bundle.macOS.signingIdentity, "-");
   assert.deepEqual(config.bundle.resources, {

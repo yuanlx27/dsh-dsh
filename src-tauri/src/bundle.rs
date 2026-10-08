@@ -63,7 +63,7 @@ impl BundlePaths {
         self.binary("node")
     }
     pub fn launcher(&self) -> PathBuf {
-        self.binary("dsh")
+        self.binary("dsh-launcher")
     }
     pub fn cli(&self) -> PathBuf {
         self.resources
@@ -90,7 +90,7 @@ impl BundlePaths {
         if path == format!("src-tauri/binaries/node-{TARGET}") {
             return Ok(self.node());
         }
-        if path == format!("src-tauri/binaries/dsh-{TARGET}") {
+        if path == format!("src-tauri/binaries/dsh-launcher-{TARGET}") {
             return Ok(self.launcher());
         }
         let relative = path
@@ -267,7 +267,7 @@ pub async fn verify(paths: &BundlePaths) -> Result<Manifest, InvalidBundle> {
     }
     let mut actual = BTreeSet::from([
         format!("src-tauri/binaries/node-{TARGET}"),
-        format!("src-tauri/binaries/dsh-{TARGET}"),
+        format!("src-tauri/binaries/dsh-launcher-{TARGET}"),
     ]);
     gather(
         &paths.resources.join("dsh"),
