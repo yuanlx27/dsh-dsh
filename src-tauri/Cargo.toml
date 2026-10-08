@@ -13,7 +13,8 @@ required-features = ["desktop"]
 
 [features]
 default = []
-desktop = ["dep:tauri-build", "dep:tauri", "dep:tauri-plugin-shell", "dep:tauri-plugin-dialog", "dep:tauri-plugin-single-instance", "dep:objc2", "dep:objc2-foundation", "dep:objc2-web-kit"]
+native-bridge = ["dep:objc2", "dep:objc2-foundation", "dep:objc2-web-kit", "dep:block2"]
+desktop = ["native-bridge", "dep:tauri-build", "dep:tauri", "dep:tauri-plugin-shell", "dep:tauri-plugin-dialog", "dep:tauri-plugin-single-instance", "dep:objc2", "dep:objc2-foundation", "dep:objc2-web-kit"]
 
 # Avoid misaligned Mach-O LINKEDIT in host proc-macro dylibs on macOS 27.
 [profile.release.build-override]
@@ -41,6 +42,7 @@ libc = "=0.2.186"
 tempfile = "=3.27.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
+block2 = { version = "=0.6.2", optional = true }
 objc2 = { version = "=0.6.5", optional = true }
 objc2-foundation = { version = "=0.3.2", optional = true }
 objc2-web-kit = { version = "=0.3.2", optional = true }
