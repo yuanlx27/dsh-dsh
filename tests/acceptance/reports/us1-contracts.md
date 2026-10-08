@@ -44,6 +44,23 @@ passed. The full Rust suite intentionally remains red until T020/T025 exist.
   packaging command red. Hook fakes do not prove actual multiplex wire handling,
   native transfer handles or frame authorization; T026/T032 must qualify those.
 
-T018 automated contracts and T019 native procedure are still pending.
+## T018: notice, retained-window and quit contracts
+
+- Added `src-tauri/tests/lifecycle.rs`: current saved revision only, failed
+  writes deny entry, bounds preservation/no Harness preference fields, retained
+  document identity, absent/failed-only recreation and stale native callbacks.
+- Quit policy takes only service liveness, not task/session/window inspection:
+  repeated requests join one decision; Stay/dismissal/failure cannot stop or
+  exit; late responses are denied; confirmation waits for actual owned shutdown;
+  failed cleanup cannot exit; an absent service needs no confirmation.
+- Command: `cargo test --locked --offline --manifest-path src-tauri/Cargo.toml
+  --test lifecycle`.
+- Actual initial result: **red**, exit 101, E0432 for app/window/quit modules
+  (T028/T029/T030). Fixture IDs test only native-side policy transitions, not
+  renderer-provided identities. Existing runtime tests already cover coalesced
+  service launch/owned exit; actual retained DOM and ownerless native dialog
+  qualification remain T032/T033 and the T019 procedure.
+
+T019 native procedure is still pending.
 Installed candidate, actual WKScriptMessage metadata, real R cookie admission,
 macOS 14 qualification, performance and public signing gates remain pending.
