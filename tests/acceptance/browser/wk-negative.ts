@@ -9,15 +9,26 @@ void (async () => {
   if (!windowGeneration || !runtimeGeneration) throw Error("Run only in entered fixture Harness.");
   const name = `dshBridge${windowGeneration}`;
   const envelope = { windowGeneration, runtimeGeneration, operation: "bootstrap", payload: null };
-  const rows: Array<{ scenario: string; outcome: string }> = [];
+  interface Outcome { outcome: string; failure?: string }
+  const rows: Array<Outcome & { scenario: string }> = [];
+  function failure(error: unknown): string {
+    const message = typeof error === "object" && error !== null && "message" in error ? error.message : undefined;
+    const text = typeof error === "string" ? error : typeof message === "string" ? message : undefined;
+    if (text === undefined) return "unclassified";
+    if (text.includes("Desktop request denied")) return "desktop-denied";
+    if (/command.*not found|unknown command|plugin not found/i.test(text)) return "command-missing";
+    if (/invalid args|invalid argument|missing required/i.test(text)) return "invalid-arguments";
+    if (text.includes("Permissions associated with this command") && text.includes("not allowed")) return "acl-denied";
+    return "unclassified";
+  }
   async function observe(scenario: string, work: () => Promise<unknown>) {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const outcome = await Promise.race([
-        work().then(() => "resolved", () => "rejected"),
-        new Promise<string>((resolve) => { timer = setTimeout(() => resolve("timeout"), 1500); })
+        work().then<Outcome, Outcome>(() => ({ outcome: "resolved" }), (error: unknown) => ({ outcome: "rejected", failure: failure(error) })),
+        new Promise<Outcome>((resolve) => { timer = setTimeout(() => resolve({ outcome: "timeout" }), 1500); })
       ]);
-      rows.push({ scenario, outcome });
+      rows.push({ scenario, ...outcome });
     } finally { clearTimeout(timer); }
   }
   const handler = page.webkit?.messageHandlers[name];
@@ -41,5 +52,11 @@ void (async () => {
     }
   } else rows.push({ scenario: "general-ipc", outcome: "handler-absent" });
   await observe("main-positive-after-negatives", () => handler.postMessage(JSON.stringify(envelope)));
+  document.getElementById("desktop-wk-negative-results")?.remove();
+  const result = document.createElement("pre");
+  result.id = "desktop-wk-negative-results";
+  result.setAttribute("role", "status");
+  result.textContent = JSON.stringify(rows);
+  document.body.append(result);
   console.log("DESKTOP-WK-NEGATIVE", JSON.stringify(rows));
 })();

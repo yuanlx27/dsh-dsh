@@ -12,3 +12,17 @@ test("native Harness sender observation is debug-only and excludes URLs and bodi
   assert.match(observation, /wk-harness-child-sender-denied/);
   assert.doesNotMatch(observation, /frame_url|view_url|request\.payload|message\.body|format!/);
 });
+
+test("WK probe retains only bounded scenario outcomes in an accessible result node", () => {
+  const source = readFileSync(new URL("../acceptance/browser/wk-negative.ts", import.meta.url), "utf8");
+  assert.match(source, /desktop-wk-negative-results/);
+  assert.match(source, /textContent = JSON\.stringify\(rows\)/);
+  assert.match(source, /setAttribute\("role", "status"\)/);
+  assert.match(source, /1500/);
+  assert.match(source, /acl-denied/);
+  assert.match(source, /command-missing/);
+  assert.match(source, /invalid-arguments/);
+  assert.match(source, /Permissions associated with this command/);
+  assert.ok(source.indexOf('return "command-missing"') < source.indexOf('return "acl-denied"'));
+  assert.doesNotMatch(source, /rows\.push\([^\n]*error/);
+});

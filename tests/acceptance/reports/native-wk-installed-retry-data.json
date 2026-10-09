@@ -1,0 +1,69 @@
+{
+  "environment": "installed-debug-with-native-fixture-instrumentation",
+  "host": "trochili.local",
+  "os": "macOS 27.0.1 build 26A434",
+  "candidate": "/private/tmp/dsh wk install.xEG2iU/DeepSeek Harness Desktop.app",
+  "implementation_checkpoint": "2dc8c57",
+  "app": 51351,
+  "launcher": 51393,
+  "node": 51394,
+  "manifest_sha256": "ae0ecde54e811a33e57f6a9938ba8e7e4a1748df886d7b64c467be51dd23c5ed",
+  "app_binary_sha256": "121ec44d1243eff1072f3e7284c2916379fb680685f2c65cb095e3a7568550f3",
+  "native_delta": {
+    "wk-harness-child-sender-denied": 1,
+    "harness-bootstrap-admitted": 2,
+    "wk-harness-main-sender-denied": 0
+  },
+  "rows": [
+    {
+      "scenario": "main-positive",
+      "outcome": "resolved"
+    },
+    {
+      "scenario": "wrong-window-generation",
+      "outcome": "rejected",
+      "failure": "desktop-denied"
+    },
+    {
+      "scenario": "wrong-runtime-generation",
+      "outcome": "rejected",
+      "failure": "desktop-denied"
+    },
+    {
+      "scenario": "forged-main-frame-label",
+      "outcome": "rejected",
+      "failure": "desktop-denied"
+    },
+    {
+      "scenario": "oversized-envelope",
+      "outcome": "rejected",
+      "failure": "desktop-denied"
+    },
+    {
+      "scenario": "inherited-child-same-envelope",
+      "outcome": "rejected",
+      "failure": "desktop-denied"
+    },
+    {
+      "scenario": "plugin:window|get_all_windows",
+      "outcome": "rejected",
+      "failure": "acl-denied"
+    },
+    {
+      "scenario": "plugin:webview|get_all_webviews",
+      "outcome": "rejected",
+      "failure": "acl-denied"
+    },
+    {
+      "scenario": "plugin:event|listen",
+      "outcome": "rejected",
+      "failure": "acl-denied"
+    },
+    {
+      "scenario": "main-positive-after-negatives",
+      "outcome": "resolved"
+    }
+  ],
+  "confirmed_quit_clean": true,
+  "production_release_qualified": false
+}

@@ -1,5 +1,10 @@
 # T032 — actual WK negative probe (partial, unbundled debug)
 
+**Later update:** `native-wk-installed-retry.md` and its closed JSON dataset retain
+an installed-debug repeat with all ten outcomes and strict IPC permission-denial
+classification. The sections below preserve the earlier incomplete observation,
+not the latest capture status. Production/full-matrix qualification remains pending.
+
 Host `trochili.local`, arm64, macOS 27.0.1 build 26A434. Base checkpoint
 `712ed44`, plus the debug observation changes accompanying this report.
 This is **actual WK**, not a browser mock, but **not an installed production

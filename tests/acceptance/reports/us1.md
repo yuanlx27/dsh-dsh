@@ -171,7 +171,18 @@ actual inherited-child sender denial, two positive bootstrap admissions across
 negative-envelope attempts, and CSP-blocked/incompletely captured general IPC.
 This is not installed production or a complete per-case reply/ACL matrix.
 Shared-desktop concurrent editing stopped keyboard automation; the observed owned
-trio was then cleaned via owner termination. T032 remains pending.
+trio was then cleaned via owner termination.
+
+After the user reported closing OmniWM, the corrected typed observer retained
+all ten per-case outcomes on actual WK and then a re-signed/verified installed
+debug candidate. Five Harness negatives were rejected, three known Tauri commands
+returned strictly classified permission denial, and two main bootstrap positives
+resolved. Native counters independently showed one child-sender denial and only
+two bootstrap admissions. See `native-wk-installed-retry.md` and its sanitized
+JSON for exact scope, hashes, observed identities and pilot corrections. Explicit
+native Stop and Quit cleaned the final captured trio. No model task/key or provider
+operation was submitted; debug consent/Inspector are not production notice evidence.
+T032 remains pending for the remaining matrix and production/platform gates.
 
 ## Earlier environment blockers and remaining qualification
 
