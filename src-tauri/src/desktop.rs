@@ -517,6 +517,34 @@ fn data_root(app: &tauri::App) -> tauri::Result<PathBuf> {
     }
     app.path().app_data_dir()
 }
+// Host-only, opt-in destruction for actual stale-document acceptance. No IPC.
+#[cfg(debug_assertions)]
+fn fixture_destroy(app: &AppHandle) {
+    if std::env::var_os("DSH_DESKTOP_FIXTURE_ROOT").is_none()
+        || std::env::var("DSH_DESKTOP_FIXTURE_DESTROY").as_deref() != Ok("1")
+    {
+        return;
+    }
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        use tokio::signal::unix::{SignalKind, signal};
+        let Ok(mut trigger) = signal(SignalKind::user_defined1()) else {
+            return;
+        };
+        fixture_event("fixture-native-destroy-armed");
+        if trigger.recv().await.is_some() {
+            let owner = app.clone();
+            let _ = app.run_on_main_thread(move || {
+                if let Some(window) = owner.get_webview_window("primary")
+                    && window.destroy().is_ok()
+                {
+                    fixture_event("fixture-native-primary-destroy-requested");
+                }
+            });
+        }
+    });
+}
+
 pub fn run() {
     let root_slot: Arc<OnceLock<Arc<Desktop>>> = Arc::new(OnceLock::new());
     let scheme = root_slot.clone();
@@ -621,6 +649,8 @@ pub fn run() {
                 }
             });
             primary.open(app.handle())?;
+            #[cfg(debug_assertions)]
+            fixture_destroy(app.handle());
             let handle = app.handle().clone();
             let initialized = root.clone();
             tauri::async_runtime::spawn(async move {

@@ -184,6 +184,13 @@ native Stop and Quit cleaned the final captured trio. No model task/key or provi
 operation was submitted; debug consent/Inspector are not production notice evidence.
 T032 remains pending for the remaining matrix and production/platform gates.
 
+`native-document-lifetime.md` describes the subsequent debug-only host destruction
+control and prepared two-document stale-handle program. A verified installed
+pilot observed the native destroy request, but Accessibility refusal (`-25211`)
+prevented browser preparation/recreation; no stale-handle outcome is qualified.
+Owner-only termination cleaned its captured trio. Further interactive automation
+requires restored authorized Accessibility in the launching terminal context.
+
 ## Earlier environment blockers and remaining qualification
 
 A later screen capture returned success but contained only a black image.
