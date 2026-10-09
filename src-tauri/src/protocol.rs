@@ -254,6 +254,40 @@ impl Protocol {
             bootstrap,
         })
     }
+    pub fn desktop_modules(&mut self, modules: BTreeMap<String, Vec<u8>>) -> Result<(), Failure> {
+        for (name, bytes) in modules {
+            if !matches!(
+                name.as_str(),
+                "harness.js" | "native-transport.js" | "transport.js" | "wk.js"
+            ) {
+                return Err(Failure::InvalidBundle);
+            }
+            self.app.insert(
+                format!("_desktop/{name}"),
+                Asset::ok("text/javascript; charset=utf-8", bytes),
+            );
+        }
+        if !self.app.contains_key("_desktop/harness.js") {
+            return Err(Failure::InvalidBundle);
+        }
+        let index = self
+            .app
+            .get_mut("index.html")
+            .ok_or(Failure::InvalidBundle)?;
+        let html = std::str::from_utf8(&index.body).map_err(|_| Failure::InvalidBundle)?;
+        let prefix = "<script type=\"module\" crossorigin src=\"";
+        let start = html.find(prefix).ok_or(Failure::InvalidBundle)?;
+        let rest = &html[start + prefix.len()..];
+        let end = rest.find("\"></script>").ok_or(Failure::InvalidBundle)?;
+        let source = &rest[..end];
+        if !source.starts_with("./assets/") || source.contains(['<', '>', '\"', '&']) {
+            return Err(Failure::InvalidBundle);
+        }
+        let replaced=html.replacen(&format!("{prefix}{source}\"></script>"),&format!("<script type=\"module\" src=\"./_desktop/harness.js\" data-upstream-src=\"{source}\"></script>"),1);
+        index.body = replaced.into_bytes();
+        index.content_length = index.body.len();
+        Ok(())
+    }
     // Only T024's admitted native main-frame bootstrap caller may return this.
     // It is deliberately not a public URI endpoint or a renderer command here.
     pub fn bootstrap(&self) -> &Bootstrap {

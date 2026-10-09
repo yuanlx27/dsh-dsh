@@ -75,6 +75,16 @@ pub mod native {
         )?;
         Menu::with_items(app, &[&application, &file, &edit])
     }
+    pub fn informational(app: &AppHandle, action: Command, manifest: Option<&Manifest>) {
+        match action {
+            Command::About=>{
+                let versions=manifest.map(|m|format!("Desktop {}\ndsh {}",m.desktop_version,m.dsh_version)).unwrap_or_else(||format!("Desktop {}\nExpected dsh {} (runtime not verified).",env!("CARGO_PKG_VERSION"),env!("CARGO_PKG_VERSION")));
+                app.dialog().message(format!("{versions}\nLocal ad-hoc experimental build.")).title("DeepSeek Harness Desktop").show(|_|{});
+            },
+            Command::Safety=>app.dialog().message("Experimental software. Review workspace permissions and every requested action. Harness can read and change files and run commands. Model credentials use upstream plaintext storage with owner-only permissions. Local bearer authentication does not isolate other processes running as your user. Closing the window keeps the service running; quitting stops work across all sessions and workspaces.").title("Safety Notice").show(|_|{}),
+            _=>{}
+        }
+    }
     pub fn dispatch(
         app: &AppHandle,
         id: &str,
@@ -90,17 +100,8 @@ pub mod native {
             Some(Command::Open) => {
                 let _ = primary.open(app);
             }
-            Some(Command::About) => {
-                app.dialog()
-                    .message(format!(
-                        "Desktop {}\ndsh {}\nLocal ad-hoc experimental build.",
-                        manifest.desktop_version, manifest.dsh_version
-                    ))
-                    .title("DeepSeek Harness Desktop")
-                    .show(|_| {});
-            }
-            Some(Command::Safety) => {
-                app.dialog().message("Experimental software. Review workspace permissions and every requested action. Harness can read and change files and run commands. Model credentials use upstream plaintext storage with owner-only permissions. Local bearer authentication does not isolate other processes running as your user. Closing the window keeps the service running; quitting stops work across all sessions and workspaces.").title("Safety Notice").show(|_|{});
+            Some(action @ (Command::About | Command::Safety)) => {
+                informational(app, action, Some(manifest))
             }
             None => {}
         }

@@ -11,12 +11,13 @@
   "app": {
     "windows": [],
     "security": {
-      "capabilities": [],
+      "capabilities": ["shell"],
       "csp": "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; connect-src 'none'"
     }
   },
   "bundle": {
     "active": true,
+    "icon": ["icons/icon.icns", "icons/icon.png"],
     "targets": [
       "app",
       "dmg"

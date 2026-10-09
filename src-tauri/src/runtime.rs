@@ -135,6 +135,14 @@ pub struct LaunchConfig {
 impl LaunchConfig {
     // The native app supplies only immutable bundle paths and its own validated overlay.
     pub async fn verified(paths: &BundlePaths, app_data: PathBuf) -> Result<Self, Failure> {
+        Self::verified_manifest(paths, app_data)
+            .await
+            .map(|(config, _)| config)
+    }
+    pub async fn verified_manifest(
+        paths: &BundlePaths,
+        app_data: PathBuf,
+    ) -> Result<(Self, bundle::Manifest), Failure> {
         let manifest = bundle::verify(paths)
             .await
             .map_err(|_| Failure::InvalidBundle)?;
@@ -154,14 +162,17 @@ impl LaunchConfig {
         for path in [&home, &cwd] {
             preferences::ensure_private_dir(path).map_err(|_| Failure::Launch)?;
         }
-        Ok(Self {
-            launcher: paths.launcher(),
-            node: paths.node(),
-            cli: paths.cli(),
-            home,
-            cwd,
-            overlay,
-        })
+        Ok((
+            Self {
+                launcher: paths.launcher(),
+                node: paths.node(),
+                cli: paths.cli(),
+                home,
+                cwd,
+                overlay,
+            },
+            manifest,
+        ))
     }
 }
 

@@ -5,6 +5,9 @@ pub mod app;
 pub mod authentication;
 pub mod bridge;
 pub mod bundle;
+#[cfg(feature = "desktop")]
+pub mod desktop;
+pub mod dispatch;
 pub mod errors;
 pub mod http_transport;
 pub mod menu;

@@ -44,7 +44,11 @@ test("bundle declares fixed resources, both sidecars and local macOS-only delive
   const manifest = await readFile(new URL("src-tauri/Cargo.toml", root), "utf8");
   assert.match(manifest, /\[profile\.release\.build-override\]\s+strip = "none"/);
   assert.deepEqual(config.app.windows, []);
-  assert.deepEqual(config.app.security.capabilities, []);
+  assert.deepEqual(config.app.security.capabilities, ["shell"]);
+  const capability=JSON.parse(await readFile(new URL("src-tauri/capabilities/shell.json",root),"utf8"));
+  assert.deepEqual(capability.permissions,[]);
+  assert.equal(capability.local,false);
+  assert.deepEqual(capability.remote.urls,["dsh-app://shell/*"]);
   assert.equal(config.plugins, undefined);
   assert.match(config.build.beforeBuildCommand, /runtime:verify/);
 });

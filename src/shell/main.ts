@@ -1,10 +1,13 @@
 import { ShellController, type ShellBridge } from "./state.js";
+import {localBridge} from "./native.js";
 
 declare global { interface Window { __DSH_SHELL__?: ShellBridge } }
 // This bridge is supplied by the native document-start shell integration.
 // Its existence is not authorization: T024 validates actual WK sender metadata.
 const unavailable = async (): Promise<never> => { throw new Error("Native shell unavailable."); };
-const controller = new ShellController(window.__DSH_SHELL__ ?? { status: unavailable, acknowledge: unavailable, retry: unavailable, enter: unavailable });
+let native=window.__DSH_SHELL__;
+try {native??=localBridge(window);}catch {/* Unsupported browser is not native authority. */}
+const controller = new ShellController(native ?? { status: unavailable, acknowledge: unavailable, retry: unavailable, enter: unavailable });
 function element<T extends HTMLElement>(id: string, kind: new (...args: never[]) => T): T {
   const node = document.getElementById(id);
   if (!(node instanceof kind)) throw new Error("Invalid shell document.");

@@ -1,0 +1,9 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "shell",
+  "description": "No general Tauri IPC authority. Shell and Harness use separate actual-WK main-frame handlers.",
+  "windows": ["primary"],
+  "local": false,
+  "remote": {"urls": ["dsh-app://shell/*"]},
+  "permissions": []
+}

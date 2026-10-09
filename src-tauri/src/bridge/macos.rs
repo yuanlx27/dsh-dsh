@@ -14,24 +14,87 @@ use objc2_web_kit::{
 };
 use std::{ptr, rc::Rc};
 
+enum Guard {
+    Harness(Permit),
+    Local(super::local::Permit),
+}
+impl Guard {
+    fn with_current<T>(&self, work: impl FnOnce() -> T) -> Result<T, Denied> {
+        match self {
+            Self::Harness(p) => p.with_current(work),
+            Self::Local(p) => p.with_current(work),
+        }
+    }
+}
+pub(super) fn native_sender(message: &WKScriptMessage) -> Sender {
+    // Only WK-provided objects supply this metadata; no renderer constructor.
+    unsafe {
+        let frame = message.frameInfo();
+        let origin = frame.securityOrigin();
+        let message_view = message.webView();
+        let frame_view = frame.webView();
+        Sender {
+            message_view: message_view
+                .as_ref()
+                .map_or(0, |v| Retained::as_ptr(v) as usize),
+            frame_view: frame_view
+                .as_ref()
+                .map_or(0, |v| Retained::as_ptr(v) as usize),
+            main_frame: frame.isMainFrame(),
+            protocol: origin.protocol().to_string(),
+            host: origin.host().to_string(),
+            port: origin.port() as i64,
+            frame_url: frame
+                .request()
+                .URL()
+                .and_then(|u| u.absoluteString())
+                .map(|s| s.to_string()),
+            view_url: message_view
+                .and_then(|v| v.URL())
+                .and_then(|u| u.absoluteString())
+                .map(|s| s.to_string()),
+        }
+    }
+}
+pub(super) fn native_body(message: &WKScriptMessage) -> Result<String, Denied> {
+    let body = unsafe { message.body() }
+        .downcast::<NSString>()
+        .map_err(|_| Denied)?;
+    if body.length() > MAX_MESSAGE_BYTES {
+        return Err(Denied);
+    }
+    let text = body.to_string();
+    if text.len() > MAX_MESSAGE_BYTES {
+        return Err(Denied);
+    }
+    Ok(text)
+}
+pub(super) fn local_reply(
+    block: &DynBlock<dyn Fn(*mut AnyObject, *mut NSString)>,
+    scope: super::local::Permit,
+    main: MainThreadMarker,
+) -> Reply {
+    Reply {
+        block: Some(block.copy()),
+        guard: Guard::Local(scope),
+        _main: main,
+    }
+}
 type ReplyBlock = RcBlock<dyn Fn(*mut AnyObject, *mut NSString)>;
 pub struct Reply {
     block: Option<ReplyBlock>,
-    permit: Permit,
+    guard: Guard,
     _main: MainThreadMarker,
 }
 impl Reply {
     pub fn complete(mut self, value: &Value) -> Result<(), Denied> {
-        if !self.permit.is_current() {
-            return Err(Denied);
-        }
         let body = serde_json::to_string(value).map_err(|_| Denied)?;
         // Payload chunks are smaller than this. Bootstrap uses T020's 2 MiB cap.
         if body.len() > 4 * 1024 * 1024 {
             return Err(Denied);
         }
         let body = NSString::from_str(&body);
-        self.permit.with_current(|| {
+        self.guard.with_current(|| {
             if let Some(block) = self.block.take() {
                 block.call((Retained::as_ptr(&body).cast_mut().cast(), ptr::null_mut()));
             }
@@ -45,7 +108,7 @@ impl Drop for Reply {
         }
     }
 }
-fn reject(block: &DynBlock<dyn Fn(*mut AnyObject, *mut NSString)>) {
+pub(super) fn reject(block: &DynBlock<dyn Fn(*mut AnyObject, *mut NSString)>) {
     let error = NSString::from_str("Desktop request denied or no longer current.");
     block.call((ptr::null_mut(), Retained::as_ptr(&error).cast_mut()));
 }
@@ -75,31 +138,7 @@ define_class!(
             // SAFETY: WebKit calls the declared protocol on its main thread;
             // object types/lifetimes come from that callback, not renderer data.
             let result = unsafe {
-                let frame = message.frameInfo();
-                let origin = frame.securityOrigin();
-                let message_view = message.webView();
-                let frame_view = frame.webView();
-                let sender = Sender {
-                    message_view: message_view
-                        .as_ref()
-                        .map_or(0, |v| Retained::as_ptr(v) as usize),
-                    frame_view: frame_view
-                        .as_ref()
-                        .map_or(0, |v| Retained::as_ptr(v) as usize),
-                    main_frame: frame.isMainFrame(),
-                    protocol: origin.protocol().to_string(),
-                    host: origin.host().to_string(),
-                    port: origin.port() as i64,
-                    frame_url: frame
-                        .request()
-                        .URL()
-                        .and_then(|u| u.absoluteString())
-                        .map(|s| s.to_string()),
-                    view_url: message_view
-                        .and_then(|v| v.URL())
-                        .and_then(|u| u.absoluteString())
-                        .map(|s| s.to_string()),
-                };
+                let sender = native_sender(message);
                 // Reject native sender/gates before touching an unauthorized body.
                 let allowed = self
                     .ivars()
@@ -127,7 +166,7 @@ define_class!(
                 Ok((permit, request)) => {
                     let response = Reply {
                         block: Some(reply.copy()),
-                        permit: permit.clone(),
+                        guard: Guard::Harness(permit.clone()),
                         _main: self.mtm(),
                     };
                     // Never unwind through Objective-C's callback ABI or log bodies.

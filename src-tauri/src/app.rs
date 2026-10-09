@@ -179,6 +179,37 @@ impl Application {
         saved.window_bounds = Some(bounds);
         preferences::save(&self.root, &saved)
     }
+    #[cfg(feature = "desktop")]
+    pub(crate) fn acknowledge_scoped(
+        &self,
+        scope: &crate::bridge::local::Permit,
+        revision: &str,
+    ) -> io::Result<Snapshot> {
+        let mut local = self
+            .local
+            .lock()
+            .map_err(|_| io::Error::other("Application unavailable."))?;
+        if local.disposed {
+            return Err(io::Error::other("Application unavailable."));
+        }
+        scope
+            .with_current(|| acknowledge_notice(&self.root, revision))
+            .map_err(|_| io::Error::other("Application unavailable."))??;
+        local.acknowledged = true;
+        local.preferences_failed = false;
+        drop(local);
+        self.reconcile();
+        Ok(self.status())
+    }
+    #[cfg(feature = "desktop")]
+    pub(crate) fn reload_notice(&self) {
+        if let Ok(mut local) = self.local.lock() {
+            let saved = notice_acknowledged(&self.root);
+            local.acknowledged = saved.as_ref().is_ok_and(|v| *v);
+            local.preferences_failed = saved.is_err();
+        }
+        self.reconcile();
+    }
     pub fn acknowledge(&self, revision: &str) -> io::Result<Snapshot> {
         let mut local = self
             .local

@@ -7,7 +7,11 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::watch;
 
 #[cfg(test)]
+mod dispatch_tests;
+#[cfg(test)]
 mod http_tests;
+#[cfg(any(test, feature = "native-bridge"))]
+pub mod local;
 #[cfg(all(target_os = "macos", feature = "native-bridge"))]
 pub mod macos;
 #[cfg(test)]
@@ -56,9 +60,16 @@ struct Sender {
     view_url: Option<String>,
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
+enum Domain {
+    App,
+    #[cfg(any(test, feature = "native-bridge"))]
+    Shell,
+}
+#[derive(Clone, Copy, PartialEq, Eq)]
 struct Binding {
     view: usize,
     generation: u64,
+    domain: Domain,
 }
 #[derive(Default)]
 struct State {
@@ -151,6 +162,10 @@ impl Bridge {
     }
     #[cfg(any(test, feature = "native-bridge"))]
     fn bind(&self, view: usize) -> Result<Binding, Denied> {
+        self.bind_owned(view, Domain::App)
+    }
+    #[cfg(any(test, feature = "native-bridge"))]
+    fn bind_owned(&self, view: usize, domain: Domain) -> Result<Binding, Denied> {
         if view == 0 {
             return Err(Denied);
         }
@@ -160,6 +175,7 @@ impl Bridge {
         let binding = Binding {
             view,
             generation: state.next_window,
+            domain,
         };
         state.owner = Some(binding);
         state.document_fragment = None;
@@ -245,9 +261,9 @@ impl Permit {
                     .as_ref()
                     .is_none_or(|r| **r == crate::runtime::State::Ready(state.runtime_generation))
                 && state.notice
-                && state
-                    .owner
-                    .is_some_and(|b| b.generation == self.window_generation)
+                && state.owner.is_some_and(|b| {
+                    b.generation == self.window_generation && b.domain == Domain::App
+                })
                 && state.runtime_generation == self.runtime_generation
         };
         if !current {
@@ -274,19 +290,32 @@ impl Permit {
 }
 #[cfg(any(test, feature = "native-bridge"))]
 fn validate_sender(state: &State, binding: Binding, sender: &Sender) -> Result<(), Denied> {
-    if state.owner != Some(binding)
+    if binding.domain != Domain::App
         || !state.ready
         || !observed_ready(state)
         || !state.notice
         || state.runtime_generation == 0
+    {
+        return Err(Denied);
+    }
+    validate_owned_sender(state, binding, sender, "app")
+}
+#[cfg(any(test, feature = "native-bridge"))]
+fn validate_owned_sender(
+    state: &State,
+    binding: Binding,
+    sender: &Sender,
+    host: &str,
+) -> Result<(), Denied> {
+    if state.owner != Some(binding)
         || sender.message_view != binding.view
         || sender.frame_view != binding.view
         || !sender.main_frame
         || sender.protocol != "dsh-app"
-        || sender.host != "app"
+        || sender.host != host
         || sender.port != 0
-        || !app_url(sender.frame_url.as_deref())
-        || !app_url(sender.view_url.as_deref())
+        || !owned_url(sender.frame_url.as_deref(), host)
+        || !owned_url(sender.view_url.as_deref(), host)
         || state.document_fragment.as_ref().is_some_and(|expected| {
             [sender.frame_url.as_deref(), sender.view_url.as_deref()]
                 .into_iter()
@@ -302,12 +331,12 @@ fn validate_sender(state: &State, binding: Binding, sender: &Sender) -> Result<(
     Ok(())
 }
 #[cfg(any(test, feature = "native-bridge"))]
-fn app_url(input: Option<&str>) -> bool {
+fn owned_url(input: Option<&str>, host: &str) -> bool {
     input
         .and_then(|s| url::Url::parse(s).ok())
         .is_some_and(|u| {
             u.scheme() == "dsh-app"
-                && u.host_str() == Some("app")
+                && u.host_str() == Some(host)
                 && u.port().is_none()
                 && u.username().is_empty()
                 && u.password().is_none()

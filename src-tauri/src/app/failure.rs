@@ -12,11 +12,15 @@ use objc2_web_kit::{
     WKNavigation, WKNavigationAction, WKNavigationActionPolicy, WKNavigationDelegate,
     WKNavigationType, WKWebView,
 };
-use std::{cell::Cell, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
 struct State {
     previous: Option<Retained<ProtocolObject<dyn WKNavigationDelegate>>>,
     navigation: Rc<Cell<usize>>,
     failed: Rc<dyn Fn()>,
+    approved: Rc<RefCell<Option<String>>>,
 }
 define_class!(
     #[unsafe(super(NSObject))]
@@ -43,6 +47,16 @@ define_class!(
             let request=unsafe {action.request()};
             let native=request.URL();
             let disposition=native.as_ref().and_then(|u|u.absoluteString()).and_then(|s|url::Url::parse(&s.to_string()).ok()).map_or(Navigation::Deny,|url|navigation(&url,unsafe {action.navigationType()}==WKNavigationType::LinkActivated));
+            if disposition == Navigation::Owned {
+                let target=unsafe {action.targetFrame()};
+                let allowed=target.as_ref().is_some_and(|frame| {
+                    if !unsafe {frame.isMainFrame()}{return true;}
+                    let actual=native.as_ref().and_then(|u|u.absoluteString()).map(|s|s.to_string());
+                    let mut approved=self.ivars().approved.borrow_mut();
+                    if actual.is_some() && *approved==actual {approved.take();true}else{false}
+                });
+                if !allowed {decision.call((WKNavigationActionPolicy::Cancel,));return;}
+            }
             if disposition != Navigation::Owned {
                 decision.call((WKNavigationActionPolicy::Cancel,));
                 if disposition==Navigation::External && let Some(url)=native {NSWorkspace::sharedWorkspace().openURL(&url);}
@@ -99,6 +113,7 @@ impl FailureGuard {
         view: Retained<WKWebView>,
         navigation: Rc<Cell<usize>>,
         failed: Rc<dyn Fn()>,
+        approved: Rc<RefCell<Option<String>>>,
         main: MainThreadMarker,
     ) -> Self {
         // Main-thread owned view and delegate; no renderer-provided object.
@@ -107,6 +122,7 @@ impl FailureGuard {
             previous: previous.clone(),
             navigation,
             failed,
+            approved,
         });
         let observer: Retained<Observer> = unsafe { msg_send![super(observer), init] };
         unsafe {

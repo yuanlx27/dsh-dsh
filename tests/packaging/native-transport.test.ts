@@ -24,8 +24,8 @@ test("native HTTP chunks preserve multipart bytes and ordered binary response", 
 
 test("native shim demultiplexes opaque values, does not deduplicate, cancels Stop",async()=>{
   const records: Record<string,unknown>[]=[];
-  const queue: Record<string,unknown>[]=[];let waiting:((v:unknown)=>void)|undefined; let physical=0;
-  function push(frame:Record<string,unknown>){const packet={data:Buffer.from(JSON.stringify(frame)).toString("base64"),end:true};if(waiting){const resolve=waiting;waiting=undefined;resolve(packet);}else queue.push(packet);}
+  const queue: Record<string,unknown>[]=[];let waiting:((v:unknown)=>void)|undefined; let physical=0;let frameSequence=0;
+  function push(frame:Record<string,unknown>){const packet={sequence:frameSequence++,kind:"text",data:Buffer.from(JSON.stringify(frame)).toString("base64"),end:true};if(waiting){const resolve=waiting;waiting=undefined;resolve(packet);}else queue.push(packet);}
   const call:NativeCall=async(operation,p)=>{
     assert.equal(operation,"stream");
     if(p.action==="begin"){physical++;return {handle:"carrier"};}
