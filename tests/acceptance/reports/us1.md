@@ -105,7 +105,7 @@ operation still failed explicitly: `osascript is not allowed assistive access`
 (-1728); the macOS permission prompt identified the responsible app as **kitty**.
 `open -a` activated the candidate without bypassing permissions. Its captured
 window was blank white; entry-load/mux markers therefore do not prove a usable
-rendered frontend. Render/mount investigation remains required.
+rendered frontend. That render defect was subsequently diagnosed/fixed above.
 After the additional kitty Accessibility grant, assistive window inspection and
 key posting succeeded. A debug-only fixture `DSH_DESKTOP_FIXTURE_INSPECT=1` uses
 Tauri's existing native devtools API; the shell and Inspector were visibly
@@ -121,8 +121,20 @@ An unlocked interactive desktop and working UI automation/manual operation are
 needed for those checks.
 
 Debug fixture consent seeding/auto-entry is not human notice/setup acceptance.
-No clean account/no-host-runtime proof, installed production release run, DMG,
-minimum macOS 14, credential save/replace/remove/per-operation flow, complete
+Subsequently a production release candidate was locally signed/verified and copied
+to `/private/tmp/dsh release install.JMNtfi/DeepSeek Harness Desktop.app`.
+Standard HOME isolation used `/private/tmp/dsh-release-home.j6dmz2`, not debug
+fixture overrides; PATH was `/usr/bin:/bin` without host Node/dsh. Tauri's existing
+`dirs::data_dir` resolved service/preferences under that private HOME; this is not
+a clean macOS account or an uninstalled-host-runtime claim. Actual shell notice
+Dismiss kept Open Harness disabled; explicit Save acknowledgement enabled it,
+then UI Open rendered R Preview Notice/setup/composer. No real key was entered.
+Preference/credential files were `600`. Production quit and saved-root relaunches
+were executed; the measured empty-key baseline is separately reported in
+`lifecycle-performance.md`, not upgraded to valid task-ready setup.
+
+No clean-account, DMG, minimum macOS 14,
+credential save/replace/remove/per-operation flow, complete
 actual child/external/other-window/stale-frame/general-IPC rejection matrix,
 upload/download/Stop, remote-machine admission, all-session quit, or T033 timing
 trials has been qualified. No Developer ID/notarization/public Gatekeeper claim.

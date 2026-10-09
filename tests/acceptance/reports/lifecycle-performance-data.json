@@ -1,0 +1,246 @@
+{
+  "fixture": "saved-empty-key-setup",
+  "idle_host_qualified": false,
+  "rows": [
+    {
+      "run": 1,
+      "app": 34244,
+      "launcher": [
+        34258
+      ],
+      "node": [
+        34259
+      ],
+      "usable_ms": 8235,
+      "quit_clean": true
+    },
+    {
+      "run": 2,
+      "app": 34281,
+      "launcher": [
+        34295
+      ],
+      "node": [
+        34296
+      ],
+      "usable_ms": 8262,
+      "quit_clean": true
+    },
+    {
+      "run": 3,
+      "app": 34313,
+      "launcher": [
+        34332
+      ],
+      "node": [
+        34333
+      ],
+      "usable_ms": 8307,
+      "quit_clean": true
+    },
+    {
+      "run": 4,
+      "app": 34350,
+      "launcher": [
+        34365
+      ],
+      "node": [
+        34366
+      ],
+      "usable_ms": 8308,
+      "quit_clean": true
+    },
+    {
+      "run": 5,
+      "app": 34387,
+      "launcher": [
+        34401
+      ],
+      "node": [
+        34402
+      ],
+      "usable_ms": 8273,
+      "quit_clean": true
+    },
+    {
+      "run": 6,
+      "app": 34424,
+      "launcher": [
+        34438
+      ],
+      "node": [
+        34439
+      ],
+      "usable_ms": 8271,
+      "quit_clean": true
+    },
+    {
+      "run": 7,
+      "app": 34458,
+      "launcher": [
+        34476
+      ],
+      "node": [
+        34477
+      ],
+      "usable_ms": 8275,
+      "quit_clean": true
+    },
+    {
+      "run": 8,
+      "app": 34494,
+      "launcher": [
+        34513
+      ],
+      "node": [
+        34514
+      ],
+      "usable_ms": 8689,
+      "quit_clean": true
+    },
+    {
+      "run": 9,
+      "app": 34531,
+      "launcher": [
+        34550
+      ],
+      "node": [
+        34551
+      ],
+      "usable_ms": 8368,
+      "quit_clean": true
+    },
+    {
+      "run": 10,
+      "app": 34568,
+      "launcher": [
+        34582
+      ],
+      "node": [
+        34583
+      ],
+      "usable_ms": 8247,
+      "quit_clean": true
+    },
+    {
+      "run": 11,
+      "app": 34605,
+      "launcher": [
+        34619
+      ],
+      "node": [
+        34620
+      ],
+      "usable_ms": 8284,
+      "quit_clean": true
+    },
+    {
+      "run": 12,
+      "app": 34642,
+      "launcher": [
+        34656
+      ],
+      "node": [
+        34657
+      ],
+      "usable_ms": 8289,
+      "quit_clean": true
+    },
+    {
+      "run": 13,
+      "app": 34674,
+      "launcher": [
+        34693
+      ],
+      "node": [
+        34694
+      ],
+      "usable_ms": 8269,
+      "quit_clean": true
+    },
+    {
+      "run": 14,
+      "app": 34711,
+      "launcher": [
+        34730
+      ],
+      "node": [
+        34731
+      ],
+      "usable_ms": 8392,
+      "quit_clean": true
+    },
+    {
+      "run": 15,
+      "app": 34748,
+      "launcher": [
+        34762
+      ],
+      "node": [
+        34763
+      ],
+      "usable_ms": 8292,
+      "quit_clean": true
+    },
+    {
+      "run": 16,
+      "app": 34785,
+      "launcher": [
+        34799
+      ],
+      "node": [
+        34800
+      ],
+      "usable_ms": 8332,
+      "quit_clean": true
+    },
+    {
+      "run": 17,
+      "app": 34822,
+      "launcher": [
+        34836
+      ],
+      "node": [
+        34837
+      ],
+      "usable_ms": 8671,
+      "quit_clean": true
+    },
+    {
+      "run": 18,
+      "app": 34854,
+      "launcher": [
+        34873
+      ],
+      "node": [
+        34874
+      ],
+      "usable_ms": 8381,
+      "quit_clean": true
+    },
+    {
+      "run": 19,
+      "app": 34891,
+      "launcher": [
+        34910
+      ],
+      "node": [
+        34911
+      ],
+      "usable_ms": 8362,
+      "quit_clean": true
+    },
+    {
+      "run": 20,
+      "app": 34928,
+      "launcher": [
+        34947
+      ],
+      "node": [
+        34948
+      ],
+      "usable_ms": 8318,
+      "quit_clean": true
+    }
+  ]
+}
