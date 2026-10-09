@@ -1,5 +1,9 @@
 # Desktop acceptance
 
+For user-led interactive testing, start with [the short manual checklist](manual.md)
+(M01–M03 first). It separates observable manual results from remaining instrumented,
+platform and release gates; it does not pre-qualify unexecuted scenarios.
+
 ## Planning review (T001)
 
 The [plan](../../specs/001-deepseek-harness-desktop/plan.md#official-desktop-alignment-fr-022fr-024)

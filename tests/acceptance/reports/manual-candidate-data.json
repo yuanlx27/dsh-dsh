@@ -1,0 +1,15 @@
+{
+  "source_checkpoint": "2bdf282",
+  "environment": "release-candidate-prepared-not-manually-tested",
+  "candidate": "/private/tmp/dsh manual install.bZA0oI/DeepSeek Harness Desktop.app",
+  "isolated_home": "/private/tmp/dsh manual home.fq2SK5",
+  "workspaces": "/private/tmp/dsh manual workspaces.GzZlzZ",
+  "app_binary_sha256": "eb996e69267d34451f5067ac3f681fde8bd31103b3ce60a539a43fa6dc44d810",
+  "manifest_sha256": "3fb3244ccbcfdcac46a5131bafa014b89a0c3680cfac701c9a888a9dd30335e9",
+  "signing": "local-ad-hoc",
+  "deep_strict_signature_verified": true,
+  "native_installed_closure_verified": true,
+  "debug_fixture_environment_required": false,
+  "manual_scenarios_executed": false,
+  "public_distribution_qualified": false
+}
