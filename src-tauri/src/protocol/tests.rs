@@ -1,6 +1,28 @@
 use super::*;
 use crate::bundle::Artifact;
 
+#[test]
+fn csp_allows_pinned_cordis_evaluation_only_in_harness() {
+    for host in [
+        None,
+        Some("shell"),
+        Some("external"),
+        Some("app.example"),
+        Some("APP"),
+    ] {
+        assert!(!content_security_policy(host).contains("'unsafe-eval'"));
+    }
+    let harness = content_security_policy(Some("app"));
+    assert!(harness.contains("script-src dsh-app: 'wasm-unsafe-eval' 'unsafe-eval';"));
+    for host in [None, Some("shell"), Some("app")] {
+        let policy = content_security_policy(host);
+        assert!(policy.contains("connect-src dsh-app:;"));
+        assert!(policy.contains("object-src 'none'; base-uri 'none'; form-action 'none'"));
+        assert!(!policy.contains("http:") && !policy.contains("https:") && !policy.contains("*"));
+        assert!(!policy.contains("script-src dsh-app: 'unsafe-inline'"));
+    }
+}
+
 fn fixture() -> (tempfile::TempDir, BundlePaths, Manifest) {
     let temp = tempfile::tempdir().unwrap();
     fs::create_dir(temp.path().join("dsh")).unwrap();

@@ -284,6 +284,12 @@ impl Desktop {
     fn created(self: &Arc<Self>, window: tauri::WebviewWindow, id: u64) -> Result<(), Failure> {
         let root = self.clone();
         let handle = window.app_handle().clone();
+        #[cfg(debug_assertions)]
+        if std::env::var_os("DSH_DESKTOP_FIXTURE_ROOT").is_some()
+            && std::env::var("DSH_DESKTOP_FIXTURE_INSPECT").as_deref() == Ok("1")
+        {
+            window.open_devtools();
+        }
         window
             .with_webview(move |view| {
                 let Some(main) = MainThreadMarker::new() else {
@@ -516,28 +522,123 @@ pub fn run() {
     let scheme = root_slot.clone();
     let setup = root_slot.clone();
     let events = root_slot.clone();
-    let app=tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_single_instance::init(move|app,_args,_cwd|{if let Some(root)=events.get()&&let Some(primary)=root.primary.get(){let _=primary.open(app);}}))
-        .register_uri_scheme_protocol("dsh-app",move|_context,request|{
-            let asset=scheme.get().map(|root|root.asset(request.method().as_str(),&request.uri().to_string())).unwrap_or(Asset{status:503,content_type:"application/octet-stream",content_length:0,body:vec![]});
-            tauri::http::Response::builder().status(asset.status).header("Content-Type",asset.content_type).header("Content-Length",asset.content_length.to_string()).header("Content-Security-Policy","default-src dsh-app:; script-src dsh-app: 'wasm-unsafe-eval'; style-src dsh-app: 'unsafe-inline'; img-src dsh-app: data: blob:; font-src dsh-app: data:; worker-src dsh-app: blob:; connect-src dsh-app:; frame-src dsh-app: blob:; object-src 'none'; base-uri 'none'; form-action 'none'").body(asset.body).expect("Static response unavailable.")
+        .plugin(tauri_plugin_single_instance::init(
+            move |app, _args, _cwd| {
+                if let Some(root) = events.get()
+                    && let Some(primary) = root.primary.get()
+                {
+                    let _ = primary.open(app);
+                }
+            },
+        ))
+        .register_uri_scheme_protocol("dsh-app", move |_context, request| {
+            let asset = scheme
+                .get()
+                .map(|root| root.asset(request.method().as_str(), &request.uri().to_string()))
+                .unwrap_or(Asset {
+                    status: 503,
+                    content_type: "application/octet-stream",
+                    content_length: 0,
+                    body: vec![],
+                });
+            tauri::http::Response::builder()
+                .status(asset.status)
+                .header("Content-Type", asset.content_type)
+                .header("Content-Length", asset.content_length.to_string())
+                .header(
+                    "Content-Security-Policy",
+                    crate::protocol::content_security_policy(request.uri().host()),
+                )
+                .body(asset.body)
+                .expect("Static response unavailable.")
         })
-        .setup(move|app|{
-            let root=Arc::new(Desktop{bridge:Arc::new(Bridge::new()),primary:OnceLock::new(),core:Mutex::new(None),failure:Mutex::new(None),root:data_root(app)?,disposed:AtomicBool::new(false),next:AtomicU64::new(1),init:tokio::sync::Mutex::new(())});
-            let weak=Arc::downgrade(&root);let detached=Arc::new(move|id|{PAGE.with(|page|{let mut slot=page.borrow_mut();if id==0||slot.as_ref().is_some_and(|p|p.id==id){slot.take();REPLIES.with(|map|map.borrow_mut().clear());}});});
-            let created=Arc::new(move|window,id|weak.upgrade().ok_or(Failure::Unavailable)?.created(window,id));
-            let weak=Arc::downgrade(&root);let persist=Arc::new(move|bounds|{if let Some(root)=weak.upgrade()&&let Some(core)=root.core(){let _=core.application.save_bounds(bounds);}});
-            let primary=Primary::new(root.root.clone(),created,detached,persist);let _=root.primary.set(primary.clone());let _=setup.set(root.clone());
+        .setup(move |app| {
+            let root = Arc::new(Desktop {
+                bridge: Arc::new(Bridge::new()),
+                primary: OnceLock::new(),
+                core: Mutex::new(None),
+                failure: Mutex::new(None),
+                root: data_root(app)?,
+                disposed: AtomicBool::new(false),
+                next: AtomicU64::new(1),
+                init: tokio::sync::Mutex::new(()),
+            });
+            let weak = Arc::downgrade(&root);
+            let detached = Arc::new(move |id| {
+                PAGE.with(|page| {
+                    let mut slot = page.borrow_mut();
+                    if id == 0 || slot.as_ref().is_some_and(|p| p.id == id) {
+                        slot.take();
+                        REPLIES.with(|map| map.borrow_mut().clear());
+                    }
+                });
+            });
+            let created = Arc::new(move |window, id| {
+                weak.upgrade()
+                    .ok_or(Failure::Unavailable)?
+                    .created(window, id)
+            });
+            let weak = Arc::downgrade(&root);
+            let persist = Arc::new(move |bounds| {
+                if let Some(root) = weak.upgrade()
+                    && let Some(core) = root.core()
+                {
+                    let _ = core.application.save_bounds(bounds);
+                }
+            });
+            let primary = Primary::new(root.root.clone(), created, detached, persist);
+            let _ = root.primary.set(primary.clone());
+            let _ = setup.set(root.clone());
             app.set_menu(menu::native::build(app.handle())?)?;
-            let commands=root.clone();app.on_menu_event(move|app,event|{if let Some(core)=commands.core(){menu::native::dispatch(app,event.id().as_ref(),commands.primary.get().unwrap(),&core.quit,&core.manifest);}else {match menu::command(event.id().as_ref()){Some(menu::Command::Open)=>{let _=commands.primary.get().unwrap().open(app);},Some(menu::Command::Close)=>{let _=commands.primary.get().unwrap().close(app);},Some(menu::Command::Quit) if !commands.request_quit()=>{app.exit(0);},Some(action @ (menu::Command::About|menu::Command::Safety))=>menu::native::informational(app,action,None),_=>{}}}});
-            primary.open(app.handle())?;let handle=app.handle().clone();let initialized=root.clone();
-            tauri::async_runtime::spawn(async move{let result=initialized.clone().initialize(handle).await;
-                match result{Ok(())=>fixture_event("authenticated-prepared-ready"),Err(f)=>fixture_event(&format!("startup-{f:?}"))};
-                if let Err(f)=result && let Ok(mut failure)=initialized.failure.lock(){*failure=Some(f);}});
+            let commands = root.clone();
+            app.on_menu_event(move |app, event| {
+                if let Some(core) = commands.core() {
+                    menu::native::dispatch(
+                        app,
+                        event.id().as_ref(),
+                        commands.primary.get().unwrap(),
+                        &core.quit,
+                        &core.manifest,
+                    );
+                } else {
+                    match menu::command(event.id().as_ref()) {
+                        Some(menu::Command::Open) => {
+                            let _ = commands.primary.get().unwrap().open(app);
+                        }
+                        Some(menu::Command::Close) => {
+                            let _ = commands.primary.get().unwrap().close(app);
+                        }
+                        Some(menu::Command::Quit) if !commands.request_quit() => {
+                            app.exit(0);
+                        }
+                        Some(action @ (menu::Command::About | menu::Command::Safety)) => {
+                            menu::native::informational(app, action, None)
+                        }
+                        _ => {}
+                    }
+                }
+            });
+            primary.open(app.handle())?;
+            let handle = app.handle().clone();
+            let initialized = root.clone();
+            tauri::async_runtime::spawn(async move {
+                let result = initialized.clone().initialize(handle).await;
+                match result {
+                    Ok(()) => fixture_event("authenticated-prepared-ready"),
+                    Err(f) => fixture_event(&format!("startup-{f:?}")),
+                };
+                if let Err(f) = result
+                    && let Ok(mut failure) = initialized.failure.lock()
+                {
+                    *failure = Some(f);
+                }
+            });
             Ok(())
         })
-        .build(tauri::generate_context!()).expect("The desktop application could not start.");
+        .build(tauri::generate_context!())
+        .expect("The desktop application could not start.");
     app.run(move |app, event| {
         if let Some(root) = root_slot.get() {
             if let Some(primary) = root.primary.get() {

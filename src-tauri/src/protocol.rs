@@ -19,6 +19,21 @@ use std::{
 #[cfg(test)]
 mod tests;
 
+/// Pinned R Cordis constructs its expression evaluator with new Function.
+/// Permit this only for the Harness document, not the native recovery shell.
+/// This permits string evaluation; it does not constrain evaluated code to R.
+/// Frozen assets and actual-WK scoped admission remain separate trust boundaries.
+pub fn content_security_policy(host: Option<&str>) -> String {
+    let evaluation = if host == Some("app") {
+        " 'unsafe-eval'"
+    } else {
+        ""
+    };
+    format!(
+        "default-src dsh-app:; script-src dsh-app: 'wasm-unsafe-eval'{evaluation}; style-src dsh-app: 'unsafe-inline'; img-src dsh-app: data: blob:; font-src dsh-app: data:; worker-src dsh-app: blob:; connect-src dsh-app:; frame-src dsh-app: blob:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    )
+}
+
 const MAX_ASSET_BYTES: u64 = 64 * 1024 * 1024;
 const WEB: &str = "dsh/desktop-web/";
 const FRONTEND: &str = "dsh/node_modules/@deepseek-ai/dsh-web-frontend/dist/";
