@@ -190,6 +190,11 @@ impl Desktop {
                         let mut value = value;
                         if std::env::var_os("DSH_DESKTOP_FIXTURE_ROOT").is_some() {
                             value["fixture"] = Value::Bool(true);
+                            if std::env::var("DSH_DESKTOP_FIXTURE_CARRIER_ONLY").as_deref()
+                                == Ok("1")
+                            {
+                                value["fixtureCarrierOnly"] = Value::Bool(true);
+                            }
                         }
                         value
                     };

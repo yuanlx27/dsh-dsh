@@ -1,0 +1,86 @@
+{
+  "environment": "installed-debug-carrier-only-page",
+  "implementation": "501745d plus host-selected carrier fixture",
+  "candidate": "/private/tmp/dsh carrier install.cTx6B6/DeepSeek Harness Desktop.app",
+  "host": "trochili.local",
+  "os": "macOS 27.0.1 build 26A434",
+  "app": 70277,
+  "launcher": 70336,
+  "node": 70337,
+  "manifest_sha256": "ae0ecde54e811a33e57f6a9938ba8e7e4a1748df886d7b64c467be51dd23c5ed",
+  "app_binary_sha256": "d91abc7e700d0d01f10b475ed244d6b83b4598d867727ef742f5a22be2d56a4d",
+  "prepared": {
+    "windowGeneration": 2,
+    "runtimeGeneration": 1,
+    "rows": [
+      {
+        "scenario": "old-carrier-unknown-endpoint-roundtrip",
+        "outcome": "resolved"
+      },
+      {
+        "scenario": "same-document-second-carrier",
+        "outcome": "desktop-denied"
+      },
+      {
+        "scenario": "old-read-before-destruction",
+        "outcome": "pending"
+      }
+    ]
+  },
+  "replacement": {
+    "windowGeneration": 4,
+    "runtimeGeneration": 1,
+    "rows": [
+      {
+        "scenario": "actual-window-generation-changed",
+        "outcome": "confirmed"
+      },
+      {
+        "scenario": "runtime-generation-retained",
+        "outcome": "confirmed"
+      },
+      {
+        "scenario": "fresh-main-positive",
+        "outcome": "resolved"
+      },
+      {
+        "scenario": "actual-old-generation",
+        "outcome": "desktop-denied"
+      },
+      {
+        "scenario": "old-stream-read",
+        "outcome": "desktop-denied"
+      },
+      {
+        "scenario": "old-stream-write",
+        "outcome": "desktop-denied"
+      },
+      {
+        "scenario": "fresh-carrier-positive",
+        "outcome": "resolved"
+      },
+      {
+        "scenario": "old-read-resolution-marker",
+        "outcome": "absent"
+      },
+      {
+        "scenario": "fresh-main-positive-after-negatives",
+        "outcome": "resolved"
+      }
+    ]
+  },
+  "native_window_count_after_destruction": 0,
+  "same_captured_trio_before_after_recreation": true,
+  "confirmed_quit_clean": true,
+  "normal_frontend_control": {
+    "carrier_only_environment_flag": false,
+    "original_r_setup_observed": true,
+    "carrier_banner_absent": true,
+    "app": 71266,
+    "launcher": 71322,
+    "node": 71323,
+    "confirmed_quit_clean": true
+  },
+  "all_late_reply_races_qualified": false,
+  "production_release_qualified": false
+}

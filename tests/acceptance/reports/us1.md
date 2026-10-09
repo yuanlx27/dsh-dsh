@@ -209,6 +209,17 @@ actual destruction, no automatic quit dialog, unchanged service PIDs, successful
 recreation with repeated old-HTTP refusals, then explicit quit/Stay retention and
 confirmed quit cleanup. Other F09/work-state/production gates remain pending.
 
+`native-carrier-lifetime.md`/data.json adds installed actual-WK carrier-only
+qualification against the real bundled R mux: successful unknown-endpoint byte
+roundtrip, same-document second-carrier refusal, genuinely pending read before
+native destruction, old stream read/write and old-generation refusals through the
+replacement, fresh carrier/bootstrap positives, unchanged service trio and final
+confirmed quit cleanup. A host-selected debug-only bootstrap boolean withholds R's
+frontend entry so the probe owns the sole physical mux; native authority and the
+singleton are unchanged. The same candidate without that flag showed original R
+setup normally. This is not a full-R production carrier or all late-reply race
+pass; old completion-marker absence remains limited evidence.
+
 ## Earlier environment blockers and remaining qualification
 
 A later screen capture returned success but contained only a black image.

@@ -5,6 +5,9 @@ record actual destroyed-document HTTP refusals after authorized Accessibility
 was restored. The then-prepared recipe below is historical: WK JSON replies now
 parse correctly and the extra-mux assumption is removed because R owns the sole
 physical carrier. Current `wk-stale.ts` is HTTP-only; full F09 is still pending.
+A subsequent host-selected carrier-only page run is documented separately in
+`native-carrier-lifetime.md`; it preserves the singleton and does not claim full-R
+production or every late-reply ordering.
 
 Adds a debug-only, opt-in **host SIGUSR1** trigger for destruction of the owned
 `primary` native WebviewWindow. Both `DSH_DESKTOP_FIXTURE_ROOT` and

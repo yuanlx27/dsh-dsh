@@ -1,7 +1,7 @@
 import {generation,send} from "./wk.js";
 import {createNativeTransport} from "./native-transport.js";
 import {installTransport} from "./transport.js";
-interface Bootstrap {globals:Record<string,unknown>;scripts:string[];preloads:string[];fixture?:boolean}
+interface Bootstrap {globals:Record<string,unknown>;scripts:string[];preloads:string[];fixture?:boolean;fixtureCarrierOnly?:boolean}
 const globals=["__DSH_BOOT__","__DSH_CONNECTION_RECOVERY__","__DSH_MODELS_ONBOARDING__","__DSH_CONTACT_CONFIG__","__DSH_SHORTCUTS_CONFIG__","__DSH_DOCUMENT_PREVIEW_CONFIG__"];
 function boot(value:unknown):Bootstrap {
   if(!value||typeof value!=="object")throw new Error("Invalid bootstrap.");
@@ -14,6 +14,10 @@ async function start(){
   const name=`dshBridge${windowGeneration}`;
   const call=(operation:"bootstrap"|"http"|"stream",payload:unknown)=>send(window,name,{windowGeneration,runtimeGeneration,operation,payload});
   const bootstrap=boot(await call("bootstrap",null));
+  if(bootstrap.fixture===true&&bootstrap.fixtureCarrierOnly===true){
+    const title=document.createElement("h1");title.textContent="Carrier acceptance fixture";
+    document.body.replaceChildren(title);return; // Host-selected debug probe, no R frontend carrier.
+  }
   for(const [key,value]of Object.entries(bootstrap.globals))Object.defineProperty(window,key,{value,writable:true,configurable:true});
   const native=createNativeTransport(call);installTransport(window,native);
   const checkpoint=(stage:"boot"|"queue"|"entry"|"error"|"mux"|"mux-error")=>{if(bootstrap.fixture===true)void native.fetch(`/api/_desktop_fixture_${stage}`,{}).then(response=>response.body?.cancel()).catch(()=>{});};
