@@ -201,6 +201,14 @@ Stay before reopening; that behavior is recorded for investigation, not called
 prompt-free recovery. Final native confirmed quit cleaned the trio. This is
 partial F09 HTTP evidence, not stream/late-reply/production qualification.
 
+The resulting shell defect is fixed and verified separately in
+`native-implicit-exit.md`/data.json. Locked Wry's implicit last-window None exit
+is now prevented without requesting quit; explicit coded exits keep confirmation.
+A fresh signed/verified installed debug run observed zero native windows after
+actual destruction, no automatic quit dialog, unchanged service PIDs, successful
+recreation with repeated old-HTTP refusals, then explicit quit/Stay retention and
+confirmed quit cleanup. Other F09/work-state/production gates remain pending.
+
 ## Earlier environment blockers and remaining qualification
 
 A later screen capture returned success but contained only a black image.

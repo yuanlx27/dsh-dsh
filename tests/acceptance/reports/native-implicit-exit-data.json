@@ -1,0 +1,68 @@
+{
+  "environment": "installed-debug-with-native-fixture-instrumentation",
+  "implementation": "74dbeca plus implicit-exit condition fix",
+  "candidate": "/private/tmp/dsh exit install.JPm3sB/DeepSeek Harness Desktop.app",
+  "host": "trochili.local",
+  "os": "macOS 27.0.1 build 26A434",
+  "app": 62244,
+  "launcher": 62303,
+  "node": 62304,
+  "manifest_sha256": "ae0ecde54e811a33e57f6a9938ba8e7e4a1748df886d7b64c467be51dd23c5ed",
+  "app_binary_sha256": "5035782677bf4cf8cc81180ba6e8817aad71849166b753c23d9d18da0432bd67",
+  "prepared": {
+    "windowGeneration": 2,
+    "runtimeGeneration": 1,
+    "rows": [
+      {
+        "scenario": "old-http-created",
+        "outcome": "resolved"
+      }
+    ]
+  },
+  "replacement": {
+    "windowGeneration": 4,
+    "runtimeGeneration": 1,
+    "rows": [
+      {
+        "scenario": "actual-window-generation-changed",
+        "outcome": "confirmed"
+      },
+      {
+        "scenario": "runtime-generation-retained",
+        "outcome": "confirmed"
+      },
+      {
+        "scenario": "fresh-main-positive",
+        "outcome": "resolved"
+      },
+      {
+        "scenario": "actual-old-generation",
+        "outcome": "desktop-denied"
+      },
+      {
+        "scenario": "old-http-finish",
+        "outcome": "desktop-denied"
+      },
+      {
+        "scenario": "old-http-write",
+        "outcome": "desktop-denied"
+      },
+      {
+        "scenario": "fresh-http-positive",
+        "outcome": "resolved"
+      },
+      {
+        "scenario": "fresh-main-positive-after-negatives",
+        "outcome": "resolved"
+      }
+    ]
+  },
+  "native_window_count_after_destruction": 0,
+  "automatic_exit_confirmation_observed": false,
+  "same_captured_trio_before_after_recreation": true,
+  "explicit_quit_confirmation_observed": true,
+  "explicit_stay_preserved_trio": true,
+  "confirmed_quit_clean": true,
+  "stream_and_late_reply_qualified": false,
+  "production_release_qualified": false
+}

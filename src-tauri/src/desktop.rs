@@ -675,8 +675,10 @@ pub fn run() {
                 primary.event(app, &event);
             }
             match event {
-                RunEvent::ExitRequested { api, .. } => {
-                    if root.request_quit() {
+                RunEvent::ExitRequested { code, api, .. } => {
+                    // Wry emits None for last-window destruction, Some for
+                    // explicit exit. Document loss never requests service quit.
+                    if code.is_none() || root.request_quit() {
                         api.prevent_exit();
                     }
                 }

@@ -1,5 +1,9 @@
 # T032 — actual destroyed-document HTTP retry (partial F09)
 
+**Subsequent fix:** `native-implicit-exit.md`/data.json records removal of the
+automatic last-window quit prompt and a fresh installed actual-WK regression.
+The pre-fix observations below remain historical evidence, not current behavior.
+
 After the user restored Accessibility and authorized continued work, System
 Events reported UI access enabled and read AXWindow successfully. This retry used
 the existing signed/verified installed debug candidate
