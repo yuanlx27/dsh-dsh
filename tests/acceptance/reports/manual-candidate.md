@@ -6,7 +6,10 @@ procedure. Installed copy passed deep/strict codesign and native closure
 verification. Exact binary/manifest hashes and paths: `manual-candidate-data.json`.
 This is a release build with no debug fixture consent/entry/Inspector/carrier
 controls required, not the older production candidate or the debug carrier page.
-No user manual case has run yet. No provider/model/task request was submitted.
+At handoff, no user manual case had run and no provider/model/task request had
+been submitted by the maintainer. Subsequent user-reported M01–M03 passes are
+recorded separately in `manual-results.md`; preparation hashes are not runtime
+measurement evidence.
 
 Candidate: `/private/tmp/dsh manual install.bZA0oI/DeepSeek Harness Desktop.app`.
 Isolated disposable HOME: `/private/tmp/dsh manual home.fq2SK5`.
