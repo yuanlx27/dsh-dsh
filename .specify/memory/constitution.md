@@ -1,12 +1,13 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.0.0 → 1.1.0 (material expansion of development workflow guidance)
+Version change: 1.1.0 → 1.2.0 (material expansion of commit-message guidance)
 
 Modified principles: none
 
 Modified sections:
-- Development Workflow: require Conventional Commits and commit-message column limits.
+- Development Workflow: prefer meaningful commit bodies; allow title-only messages
+  for trivial, self-explanatory changes. Retain existing format and column limits.
 
 Sections added: none
 Sections removed: none
@@ -68,7 +69,14 @@ repository artifacts remain English.
 - Commit messages MUST follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
   The title (subject line) MUST NOT exceed 50 columns; each body line MUST NOT exceed
   72 columns. These limits keep commit history readable in terminal tools and reviews.
-- Reviewers MUST verify commit-message format and column limits before merging.
+- Commit messages SHOULD include a body explaining what changed and why, with relevant
+  implementation details, rather than putting all details in the title. This preserves
+  useful context for future reviews and debugging. A title-only message MAY be used for
+  a trivial, self-explanatory change when a body would only repeat the title.
+  Separate the title, body, and any footer(s) with blank lines, following the structure
+  `<type>[optional scope]: <description>`, then body, then optional footer(s).
+- Reviewers MUST verify commit-message format, column limits, and compliance with the
+  body guidance before merging.
 - Every change MUST be accompanied by tests proportional to its blast radius.
 - A reviewer MUST reject a contribution whose tracked files violate Principle I.
 
@@ -92,4 +100,4 @@ Compliance is reviewed at every pull request and at every amendment. Any excepti
 Principle I must be recorded in the pull request description with the reason, and MUST
 satisfy the sole exception stated in that principle.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-05
+**Version**: 1.2.0 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-09
