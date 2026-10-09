@@ -20,8 +20,10 @@ test("stale probe gates replay on real replacement and records no opaque handles
   const source = readFileSync("tests/acceptance/browser/wk-stale.ts", "utf8");
   assert.match(source, /oldWindowGeneration === windowGeneration/);
   assert.match(source, /Native document was not replaced/);
+  assert.match(source, /JSON\.parse\(reply\)/);
   assert.match(source, /old-http-finish/);
-  assert.match(source, /old-stream-write/);
+  assert.match(source, /old-http-write/);
+  assert.doesNotMatch(source, /call\("stream"/);
   assert.match(source, /fresh-http-positive/);
   assert.match(source, /localStorage\.removeItem\(key\)/);
   assert.match(source, /JSON\.stringify\(\{ windowGeneration, runtimeGeneration, rows \}\)/);

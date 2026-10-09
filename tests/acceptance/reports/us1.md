@@ -191,6 +191,16 @@ prevented browser preparation/recreation; no stale-handle outcome is qualified.
 Owner-only termination cleaned its captured trio. Further interactive automation
 requires restored authorized Accessibility in the launching terminal context.
 
+After restored authorization, `native-document-lifetime-retry.md` and its closed
+JSON retain an actual native destruction/manual recreation: generation 2 -> 4,
+runtime generation 1 and captured trio unchanged. Actual old-generation and old
+HTTP finish/write calls were denied, with fresh bootstrap/HTTP positives. The
+fixture now parses WK JSON string replies and no longer attempts a second mux
+against R's existing singleton. Automatic last-window exit confirmation required
+Stay before reopening; that behavior is recorded for investigation, not called
+prompt-free recovery. Final native confirmed quit cleaned the trio. This is
+partial F09 HTTP evidence, not stream/late-reply/production qualification.
+
 ## Earlier environment blockers and remaining qualification
 
 A later screen capture returned success but contained only a black image.

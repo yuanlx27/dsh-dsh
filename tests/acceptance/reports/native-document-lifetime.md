@@ -1,4 +1,10 @@
-# T032 — host-only document lifetime probe (matrix execution pending)
+# T032 — host-only document lifetime probe (historical blocked pilot)
+
+**Later update:** `native-document-lifetime-retry.md` and its closed dataset
+record actual destroyed-document HTTP refusals after authorized Accessibility
+was restored. The then-prepared recipe below is historical: WK JSON replies now
+parse correctly and the extra-mux assumption is removed because R owns the sole
+physical carrier. Current `wk-stale.ts` is HTTP-only; full F09 is still pending.
 
 Adds a debug-only, opt-in **host SIGUSR1** trigger for destruction of the owned
 `primary` native WebviewWindow. Both `DSH_DESKTOP_FIXTURE_ROOT` and
