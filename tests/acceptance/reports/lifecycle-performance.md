@@ -56,9 +56,23 @@ failure. Some diagnostic trials also encountered an inactive display; bounded
 native caffeinate assertions were renewed per trial without bypassing lock or
 permission checks. The final complete dataset uses the corrected observer.
 
+## Later cleanup audit and limits
+
+After these observations, a broad installed-path scan found two older isolated
+pilot Node services, `32486/33676`, outside the twenty captured Node IDs. They
+were verified as owned experiments and conservatively stopped; see `us1.md`.
+Their origin is not resolved. `quit_clean` means the captured per-trial trio was
+gone, **not** that every older pilot process had been globally absent. Do not
+upgrade these observations to whole-process-tree or global cleanup qualification.
+A separate app-only crash probe cleaned its full observed trio.
+
+The HOME subsequently gained synthetic credentials and successful controlled
+model requests; that later result does not retrospectively change the empty-key
+fixture or qualify its earlier performance measurements.
+
 ## Pending
 
-Valid controlled model credential/setup, idle-host verification, process-start
+Idle-host saved-valid-controlled-model performance trials, idle-host verification, process-start
 and visible/task-ready receiving-boundary instrumentation without setup input,
 all running/approval/hidden/transfer/selection/scroll cases, native Stay coverage,
 minimum-OS and other release gates. **T033 remains unchecked.**

@@ -1,8 +1,10 @@
 # T032 — installed native acceptance (IN PROGRESS, NOT PASSED)
 
 Host: Apple Silicon, macOS 27.0.1 build 26A434. Implementation checkpoint:
-`6fe83ff` (T031); debug-only temporary path diagnostics were removed after use.
-All data was isolated fixture data. No provider operation/task was submitted.
+`6fe83ff` (T031), CSP correction `d1bda7b`, lifecycle baseline `e6570d6`.
+Debug-only temporary path diagnostics were removed after use. All data was
+isolated fixture data. Earlier entry probes submitted no task/provider operation;
+the later credential section below uses a controlled loopback model only.
 
 ## Candidate preparation observations
 
@@ -93,8 +95,74 @@ warning uses the bundled pinned-R icon (unbundled executable uses a generic icon
 
 These ten draft-only cycles do **not** qualify full SC-007: selection/scroll,
 pending approvals, active transfer identity and ten confirmed quits are still
-pending. Installed saved-setup production release trials have not yet executed.
+pending for the complete work-state matrix. Production release baseline trials
+subsequently executed as described in `lifecycle-performance.md`.
 No evidence above upgrades debug consent seeding into native notice UX acceptance.
+
+## Executed production credential flow (controlled model, partial)
+
+The same installed production release ran with standard isolated HOME/PATH and
+no debug overrides. Actual R Models settings UI, actual native HTTP/mux carrier,
+and the real bundled upstream credential/settings/LLM implementations were used.
+A temporary Node TypeScript **loopback model resource**, not a replacement engine,
+accepted two public synthetic test identities. No public provider was contacted,
+no real credential was entered, and it never emitted a tool/action request.
+
+- Native focused input saved a synthetic key and loopback Base URL in R's
+  DeepSeek editor. Its status confirmed Saved/API key configured; the credential
+  file remained `600`. R's Messages adapter successfully streamed the fixture
+  answer into the conversation; R also made its own title-generation request.
+- Without restart, the same app/launcher/Node (`35872/35885/35886`) saved a
+  replacement through R's editor. The next Messages operation used replacement
+  authentication and completed. The fixture recorded only credential categories,
+  never Authorization/x-api-key values or request bodies. This proves per-operation
+  resolution for this exercised adapter, not every adapter or secret source.
+- R's Custom model API form created `desktop-fixture` using OpenAI Chat
+  Completions. Fetch available models returned its one fixture model; Add selected
+  and Create provider stored the derived reference. Explicit Delete confirmation
+  removed that provider and its derived reference; unrelated official reference
+  remained configured and file mode remained `600`. Presence/removal assertions
+  emitted booleans only, never the credential file.
+- After native quit, explicit installed relaunch (app `37958`) reached the actual
+  composer **without** the missing-key setup dialog. A further Messages request
+  succeeded with replacement authentication. Explicit native Stop and Quit was
+  observed; the current owned trio disappeared. No receipt-only Ready marker was
+  substituted for rendered output.
+
+Sanitized fixture events are in `credential-flow-data.json`: two initial Messages
+operations, a replacement Messages operation, one model discovery, then a saved
+replacement Messages operation after relaunch. The native experiment used
+`/private/tmp/dsh-controlled-model.ts`; the equivalent loopback protocol resource
+is retained as `tests/fixtures/controlled-model.ts` with typed tests (missing
+module RED exit 1, then GREEN). Unit resource tests do not substitute for the
+native observations above or qualify a real model/provider.
+
+**Upstream removal limitation / release gap:** deletion cleanup is intentionally
+limited to a user-layer profile whose reference is exactly the derived target.
+The composition-owned official DeepSeek row has no independent Remove key action
+in this R UI; its non-derived/shared reference was deliberately not edited on
+disk or cleared by a new shell credential UI. This exercised custom-reference
+removal is not a claim that every configured credential can be removed through
+that page. Remaining required removal paths need an upstream-supported operation
+and actual native verification; preserve upstream's ownership policy.
+
+## Cleanup audit and app-only crash probe
+
+A broader final process-path scan found **two earlier isolated pilot services**
+(`32486/33676`, started 13:42:16/13:54:39), parent PID 1, still listening. They are
+not among the final twenty-row dataset's captured Node IDs. Cause is unresolved;
+combined test-runner process-group termination is a possibility, not a finding.
+The successful per-trial captured-trio checks did not prove global absence of
+older pilot survivors. Ownership was verified through exact installed Node/CLI/
+web flags and the exclusive isolated working directory; only those two known
+experiment PIDs received TERM and disappeared. No process-name scan was killed.
+
+A separate production **app-only SIGKILL** probe then observed the complete trio
+`39595/39612/39613`, killed only the app, and verified app/launcher/Node all gone
+within the eight-second observation. This supports owner-pipe EOF cleanup in that
+case; it does not resolve the older pilots or qualify simultaneous launcher death.
+The provider/display assertions were stopped; final candidate-path process scan
+had no owned app/launcher/Node survivors. Keep full lifecycle qualification pending.
 
 ## Earlier environment blockers and remaining qualification
 
@@ -134,10 +202,10 @@ were executed; the measured empty-key baseline is separately reported in
 `lifecycle-performance.md`, not upgraded to valid task-ready setup.
 
 No clean-account, DMG, minimum macOS 14,
-credential save/replace/remove/per-operation flow, complete
-actual child/external/other-window/stale-frame/general-IPC rejection matrix,
-upload/download/Stop, remote-machine admission, all-session quit, or T033 timing
-trials has been qualified. No Developer ID/notarization/public Gatekeeper claim.
+complete credential removal/adapter coverage, actual child/external/other-window/
+stale-frame/general-IPC rejection matrix, upload/download/Stop, remote-machine
+admission, ongoing-work/pending-approval all-session quit or valid/idle-host SC-002
+qualification has been completed. No Developer ID/notarization/public Gatekeeper claim.
 
 **T032 remains unchecked; US1/release is not qualified.** These observations do
 not authorize moving test procedures or adapter fixtures into the passed column.
