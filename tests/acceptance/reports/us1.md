@@ -164,6 +164,15 @@ case; it does not resolve the older pilots or qualify simultaneous launcher deat
 The provider/display assertions were stopped; final candidate-path process scan
 had no owned app/launcher/Node survivors. Keep full lifecycle qualification pending.
 
+## Subsequent actual WK negative probe
+
+`native-wk-negatives.md` records a separate unbundled debug/native Inspector probe:
+actual inherited-child sender denial, two positive bootstrap admissions across
+negative-envelope attempts, and CSP-blocked/incompletely captured general IPC.
+This is not installed production or a complete per-case reply/ACL matrix.
+Shared-desktop concurrent editing stopped keyboard automation; the observed owned
+trio was then cleaned via owner termination. T032 remains pending.
+
 ## Earlier environment blockers and remaining qualification
 
 A later screen capture returned success but contained only a black image.

@@ -147,6 +147,14 @@ define_class!(
                     .lock()
                     .map_err(|_| Denied)
                     .and_then(|state| validate_sender(&state, self.ivars().binding, &sender));
+                #[cfg(all(debug_assertions, feature = "desktop"))]
+                crate::desktop::fixture_event(if !sender.main_frame {
+                    "wk-harness-child-sender-denied"
+                } else if allowed.is_err() {
+                    "wk-harness-main-sender-denied"
+                } else {
+                    "wk-harness-main-sender-metadata-passed"
+                });
                 // NSString-only bounded envelope. Body fields never form Sender.
                 allowed
                     .and_then(|()| message.body().downcast::<NSString>().map_err(|_| Denied))

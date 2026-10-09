@@ -1,0 +1,12 @@
+{
+  "environment": "unbundled-debug",
+  "app": 43657,
+  "launcher": 43709,
+  "node": 43710,
+  "delta": {
+    "wk-harness-child-sender-denied": 1,
+    "harness-bootstrap-admitted": 2,
+    "wk-harness-main-sender-denied": 0
+  },
+  "browser_rows_retained": false
+}

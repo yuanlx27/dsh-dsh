@@ -13,7 +13,7 @@
     "runtime:verify": "node scripts/verify-runtime.ts",
     "test:packaging": "node --test tests/packaging/*.test.ts",
     "check:source": "node --test tests/packaging/source-policy.test.ts",
-    "typecheck:tools": "tsc --project tsconfig.tools.json",
+    "typecheck:tools": "tsc --project tsconfig.tools.json && tsc --project tsconfig.acceptance.json",
     "tauri:dev": "tauri dev --target aarch64-apple-darwin --features desktop",
     "tauri:build": "tauri build --target aarch64-apple-darwin --features desktop"
   },

@@ -488,7 +488,7 @@ impl FixedDialog for AppHandle {
         self.dialog().message("The Harness page stopped. Open Workspace Window to recreate it. The local service was not restarted.").title("Harness page unavailable").show(|_|{});
     }
 }
-fn fixture_event(event: &str) {
+pub(crate) fn fixture_event(event: &str) {
     #[cfg(debug_assertions)]
     if let Some(root) = std::env::var_os("DSH_DESKTOP_FIXTURE_ROOT") {
         use std::{io::Write, os::unix::fs::OpenOptionsExt};
