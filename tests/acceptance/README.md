@@ -49,6 +49,9 @@ steps and thresholds. Shell readiness is not upstream task readiness.
 | Cross-story: accessibility | NFR-001 | Keyboard and VoiceOver on shell surfaces; focus/name/status transitions and preservation of upstream capability; `accessibility.md`, `reports/accessibility.md` |
 | Cross-story: delivery/network | FR-001, FR-004, FR-017, FR-020–021, FR-025 | Final signed-resource/plist checks; installed distribution, offline startup, no extra destinations or native authority; `reports/distribution.md`, `reports/security-network.md`, `reports/release-readiness.md` |
 
+The [US2 in-progress report](reports/us2.md) records real standalone R backend
+completion/Stop tests separately from the still-pending installed native/UI matrix.
+
 ## Quantitative gates
 
 | Criterion | Required trials / outcome | Evidence |
