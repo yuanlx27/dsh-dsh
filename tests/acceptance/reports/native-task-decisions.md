@@ -47,6 +47,36 @@ outcome/isError/end-reason only. No messages, tool arguments, credentials or raw
 records are retained. It neither edits upstream records nor starts another
 upstream service. The unrelated default-workspace Session is not inspected.
 
+## Later no-tool report — fixture limitations, not a policy-bypass finding
+
+The user reports that Read Only appears ineffective because subsequent requests
+produce no operation or approval. A-only metadata still records read-only/ask,
+with no switch back to workspace-write. The workspace remains README-only.
+Session 6eb's next tool sequence is call 43, ask 44, rejected decision 45, errored
+result 46, completed end 51; later turns and two other A fixture Sessions have
+completed turns without tool calls. Whether that second approval disappeared
+during hide/show, was explicitly rejected, or followed other gestures is **not
+confirmed**. Do not qualify pending hide/show from these rows.
+
+The supplier is intentionally one-shot per explicit host arming: later streaming
+operations receive fixed text until the host rearms. Absence of a tool request
+cannot establish that read-only enforcement failed, nor that a natural model
+understood the user's prompt. Human retries/new Sessions do not rearm it.
+
+Source review also found a real **fixture** defect: rearming reused constant
+provider tool/response IDs. It is an identity-collision risk for repeated trials
+in one Session, not a proven cause of the user's UI observation. The fixture now
+uses standard-library UUIDs, one tool ID per actual tool reply and one response
+ID shared by that response's chunks. Cross-arming Messages/OpenAI regressions
+failed before the fix and pass afterward; all 89 packaging/source/strict checks
+pass. No product transport, permission or downloaded upstream source is changed.
+
+The live supplier PID 9171 still runs the previously loaded source. It has **not**
+been restarted or patched by this source commit; native retry must wait for a
+scheduled fixture restart/reconfiguration. Preserve the concrete first Reject
+observations, but do not treat repeated-ID trials as full provider identity
+qualification. User clarification of the hide/show/decision sequence is pending.
+
 ## Remaining qualification
 
 Allow, pending hide/show, UI dismissal distinct from Reject, withdrawal, actual

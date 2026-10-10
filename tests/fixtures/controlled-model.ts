@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { randomUUID } from "node:crypto";
 
 // Public test literals, NOT actual provider credentials. Never record header/body values.
 const keys = new Map([["desktop-fixture-first", "first"], ["desktop-fixture-replaced", "replacement"]]);
@@ -49,6 +50,8 @@ export async function controlledModel(options: ControlledModelOptions = {}) {
         if (!advertised) { response.writeHead(422); response.end(JSON.stringify({ error: "Fixture tool not advertised by upstream" })); return; }
         toolIssued = true;
       }
+      const toolId = `fixture-tool-${randomUUID()}`;
+      const responseId = randomUUID();
       const text = "Controlled fixture response. No action requested.";
       const wait = async () => {
         if (!current.streamGate || tool) return;
@@ -58,12 +61,12 @@ export async function controlledModel(options: ControlledModelOptions = {}) {
         } finally { if (closed) response.off("close", closed); }
       };
       if (operation === "messages") {
-        const message = { id: "fixture-message", type: "message", role: "assistant", model, content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 0 } };
+        const message = { id: `fixture-message-${responseId}`, type: "message", role: "assistant", model, content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 0 } };
         if (streaming) {
           response.setHeader("content-type", "text/event-stream");
           const emit = (event: string, data: unknown) => response.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
           emit("message_start", { type: "message_start", message });
-          emit("content_block_start", { type: "content_block_start", index: 0, content_block: tool ? { type: "tool_use", id: "fixture-tool-call", name: tool.name, input: {} } : { type: "text", text: "" } });
+          emit("content_block_start", { type: "content_block_start", index: 0, content_block: tool ? { type: "tool_use", id: toolId, name: tool.name, input: {} } : { type: "text", text: "" } });
           emit("content_block_delta", { type: "content_block_delta", index: 0, delta: tool ? { type: "input_json_delta", partial_json: JSON.stringify(tool.input) } : { type: "text_delta", text } });
           await wait();
           if (response.destroyed) return;
@@ -73,10 +76,10 @@ export async function controlledModel(options: ControlledModelOptions = {}) {
           response.end();
         } else response.end(JSON.stringify({ ...message, content: [{ type: "text", text }], stop_reason: "end_turn", usage: { input_tokens: 1, output_tokens: 1 } }));
       } else {
-        const envelope = { id: "fixture-response", created: 0, model };
+        const envelope = { id: `fixture-response-${responseId}`, created: 0, model };
         if (streaming) {
           response.setHeader("content-type", "text/event-stream");
-          const delta = tool ? { role: "assistant", tool_calls: [{ index: 0, id: "fixture-tool-call", type: "function", function: { name: tool.name, arguments: JSON.stringify(tool.input) } }] } : { role: "assistant", content: text };
+          const delta = tool ? { role: "assistant", tool_calls: [{ index: 0, id: toolId, type: "function", function: { name: tool.name, arguments: JSON.stringify(tool.input) } }] } : { role: "assistant", content: text };
           response.write(`data: ${JSON.stringify({ ...envelope, object: "chat.completion.chunk", choices: [{ index: 0, delta, finish_reason: null }] })}\n\n`);
           await wait();
           if (response.destroyed) return;
