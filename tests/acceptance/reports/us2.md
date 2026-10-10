@@ -39,8 +39,46 @@ does not erase already delivered text. No tool ran, so these cases establish
 neither action rollback nor permission/action-effect correctness.
 
 Missing-fixture RED preceded implementation. Targeted execution and strict tooling
-checks pass; full packaging suite now has **84 passing tests**, source policy and
+checks pass; full packaging suite now has **88 passing tests**, source policy and
 both tooling/browser typechecks pass. Test elapsed time is not SC-003 latency.
+
+## Executed approval/action backend subset
+
+`standalone-approvals.test.ts` extends the same isolated stock web-profile runner.
+It selects the supported per-Session `read-only` preset and verifies effective
+sandbox `read-only` plus approval `ask` before submission. The existing controlled
+supplier emits exactly one **actually advertised** `bash` call requesting a
+workspace-write escalation. No fixture executes the tool or constructs a fake
+approval request: upstream dsh performs its real model/tool/approval pipeline.
+
+A **test-only same-process answerer** is prepended on the documented
+`approval/request` waterfall for this Session's bash call. It holds the actual
+request until the driver decides. This substitutes for interactive presentation,
+not for policy, gating or execution; it does not prove the stock browser/Remote
+answerer, decision controls, UI dismissal, or native forwarding.
+
+| Case | Actual audit and filesystem observations |
+|---|---|
+| Allow | Pending marker absent; one matched ask/`allowed-once` decision; successful tool result; exactly `approved` in approval-marker.txt |
+| Deny | Pending marker absent; one matched ask/`rejected` decision; errored tool result; no marker afterward |
+| Withdraw pending approval | Stop while the real ask is held; one matched `cancelled` decision; errored tool result and aborted turn; a late `allowed-once` answer is discarded, with no marker after the bounded observation/disposal |
+| Stop foreground action | Grant once; observe started marker and a running Session-owned bash job; Stop settles an aborted turn/errored tool result; upstream registry has no running/stopping Session jobs at observation; stop-marker.txt remains exactly `started`, without `finished`, before and after context disposal |
+
+The action command is bounded: write `started`, sleep 20 seconds, append `finished`;
+foreground mode is explicit and its timeout is 30 seconds. No rollback is expected.
+Every case asserts one tool call/result, one paired approval audit, unchanged
+standing read-only/ask policy, exact allowed workspace entries/README retention,
+zero refused external fetch attempts, authenticated loopback requests, whole
+context disposal and child exit zero. Allow/deny proceed to upstream `completed`
+turns; withdrawal/action Stop to `aborted`. No model narrative substitutes for the
+parent process's filesystem checks. No process-name cleanup or user-window action
+is performed.
+
+New approval and action-Stop assertions were RED before driver support, then GREEN.
+Five prior/new cases plus the action-Stop case pass strict tooling; all **88**
+packaging checks and source policy pass. Test wall time is not Stop acknowledgement
+or receiving-boundary latency. The bounded late-grant check is not every race;
+registry observation is not an independently captured OS process-tree trace.
 
 ## Failed preparation, not passing evidence
 
@@ -62,8 +100,9 @@ T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),
 [T034 resources](task-fixture-preparation.md), and
 [T035 adapter-only regressions](task-forwarding.md).
 
-- Actual permission gate/preset, tool advertisement, allow/deny/dismiss, bounded
-  tool effects and in-flight action Stop in separate standalone/product roots.
+- Installed-native equivalents of the now-executed backend permission/gate,
+  advertisement, allow/deny/withdraw and foreground action-Stop cases; actual
+  browser/Remote decision routes and separate UI dismissal, in product roots.
 - Queued/steered/identical inputs, multiple workspaces/sessions, failed/interrupted
   tasks and upstream requirement gaps.
 - Installed native R frontend comparison, raw stream/transport fidelity,
