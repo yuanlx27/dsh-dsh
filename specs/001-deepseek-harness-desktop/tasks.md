@@ -96,7 +96,7 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 
 ### Tests for User Story 2
 
-- [ ] T034 [P] [US2] Specify and prepare controlled task/approval/Stop fixtures in `tests/acceptance/tasks-control.md` using R's existing permission policy; cover all FR-007 states, policy/action/target display, denial/dismissal never approving, in-flight Stop without rollback claims, identical/rapid/queued/steered submissions following dsh, reconnect/hide-show without replay, and multi-session workspace switching without shell confirmation/inspection.
+- [X] T034 [P] [US2] Specify and prepare controlled task/approval/Stop fixtures in `tests/acceptance/tasks-control.md` using R's existing permission policy; cover all FR-007 states, policy/action/target display, denial/dismissal never approving, in-flight Stop without rollback claims, identical/rapid/queued/steered submissions following dsh, reconnect/hide-show without replay, and multi-session workspace switching without shell confirmation/inspection.
 - [ ] T035 [P] [US2] Add adapter failure/cancellation/reconnect regression tests in `tests/packaging/task-forwarding.test.ts` using opaque recorded fixture envelopes from R (without keys); assert one dispatch per explicit upstream request, preserve legitimate identical-text submissions, never resubmit after reconnect/recreation, and do not introduce task admission/business state in the shim.
 
 ### Implementation and Verification for User Story 2
