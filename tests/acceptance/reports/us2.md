@@ -94,6 +94,10 @@ silently passing. An initial Stop assertion also incorrectly expected the partia
 message to disappear; the corrected expectation follows R's documented
 `assistant/message.interrupted` semantics, without changing R or product code.
 
+The [native task handoff](native-task-handoff.md) prepares a separate private
+profile and live controlled supplier for user interaction; no native case is
+pre-filled as passing.
+
 ## Still pending
 
 T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),

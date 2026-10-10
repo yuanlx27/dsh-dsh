@@ -14,7 +14,11 @@ export interface ControlledModelOptions {
 export async function controlledModel(options: ControlledModelOptions = {}) {
   const events: ProviderEvent[] = [];
   let toolIssued = false;
+  let active = 0;
   const server = createServer(async (request, response) => {
+    const current = options;
+    active++;
+    response.once("close", () => { active--; });
     const supplied = request.headers.authorization?.replace(/^Bearer /, "") ?? request.headers["x-api-key"];
     const credential = typeof supplied === "string" ? (keys.get(supplied) ?? "rejected") : "rejected";
     const operation = request.url?.endsWith("/models") ? "models" : request.url?.endsWith("/chat/completions") ? "completion" : request.url?.endsWith("/messages") ? "messages" : "unknown";
@@ -35,7 +39,7 @@ export async function controlledModel(options: ControlledModelOptions = {}) {
       const body: unknown = JSON.parse(Buffer.concat(parts).toString("utf8"));
       const model = typeof body === "object" && body !== null && "model" in body && typeof body.model === "string" ? body.model : "desktop-fixture-model";
       const streaming = typeof body === "object" && body !== null && "stream" in body && body.stream === true;
-      const tool = streaming && !toolIssued ? options.tool : undefined;
+      const tool = streaming && !toolIssued ? current.tool : undefined;
       if (tool) {
         const advertised = typeof body === "object" && body !== null && "tools" in body && Array.isArray(body.tools) && body.tools.some((value: unknown) => {
           if (!value || typeof value !== "object") return false;
@@ -47,10 +51,10 @@ export async function controlledModel(options: ControlledModelOptions = {}) {
       }
       const text = "Controlled fixture response. No action requested.";
       const wait = async () => {
-        if (!options.streamGate || tool) return;
+        if (!current.streamGate || tool) return;
         let closed: (() => void) | undefined;
         try {
-          await Promise.race([options.streamGate, new Promise<void>(resolve => { closed = resolve; response.once("close", resolve); })]);
+          await Promise.race([current.streamGate, new Promise<void>(resolve => { closed = resolve; response.once("close", resolve); })]);
         } finally { if (closed) response.off("close", closed); }
       };
       if (operation === "messages") {
@@ -90,6 +94,13 @@ export async function controlledModel(options: ControlledModelOptions = {}) {
   return {
     origin: `http://127.0.0.1:${address.port}`,
     events: events as readonly ProviderEvent[],
+    /** Host-only scenario reset: never interrupts an active provider operation. */
+    arm(next: ControlledModelOptions) {
+      if (!server.listening) throw Error("Controlled supplier is closed");
+      if (active !== 0) throw Error("Controlled supplier has active requests");
+      options = next;
+      toolIssued = false;
+    },
     close: () => new Promise<void>((resolve, reject) => {
       if (!server.listening) { resolve(); return; }
       server.close((error) => error ? reject(error) : resolve());
