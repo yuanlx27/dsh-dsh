@@ -96,7 +96,10 @@ message to disappear; the corrected expectation follows R's documented
 
 The [native task handoff](native-task-handoff.md) prepares a separate private
 profile and live controlled supplier for user interaction; no native case is
-pre-filled as passing.
+pre-filled as passing. The [first native attempt](native-task-first-attempt.md)
+created the marker without approval: persisted permission sequences show the tool
+ran under workspace-write before the read-only switch. This is an ungated
+preparation attempt, not read-only bypass evidence or an approval pass.
 
 ## Still pending
 
