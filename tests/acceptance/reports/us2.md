@@ -100,6 +100,10 @@ pre-filled as passing. The [first native attempt](native-task-first-attempt.md)
 created the marker without approval: persisted permission sequences show the tool
 ran under workspace-write before the read-only switch. This is an ungated
 preparation attempt, not read-only bypass evidence or an approval pass.
+The [installed native decision subset](native-task-decisions.md) now correlates
+actual pending/Reject UI observations with a rejected audit, errored tool result
+and independent marker absence before/after the decision. Other native cases
+and timing/identity gates remain pending.
 
 ## Still pending
 
