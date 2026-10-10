@@ -1,6 +1,8 @@
 # Open defect — reversed composer input after response completion
 
-Status: **user-reported, not yet independently reproduced or fixed**.
+Status: **intermittent user-reported defect, not independently reproduced or fixed**.
+The user subsequently reported normal input again, without a known cause. That
+is not verification of a fix.
 User-led release candidate handoff: source `2bdf282`, see `manual-candidate.md`.
 Candidate/OS/input source were not reconfirmed at this report.
 
@@ -18,6 +20,23 @@ Need to confirm: direct Latin input source versus Chinese IME, Enter submission
 versus send-button submission, frequency and whether input typed while streaming
 also exhibits the symptom. No extra provider call is requested solely to answer
 these questions if the user already knows the behavior.
+
+## Subsequent terminal observation
+
+User supplied a macOS message: `error messaging the mach port for
+IMKCFRunLoopWakeUpReliable`, followed by a terminal Ctrl-C. The name refers to
+InputMethodKit/input-method run-loop messaging. This isolated message does not
+establish the cause of the reversed caret/input symptom, nor prove a crash or
+harmlessness. Whether recovery occurred in the same run or after restarting was
+not specified. Restarting could reset transient editor/input-method state, but
+that remains a hypothesis.
+
+For normal testing, use native Quit/Stop and Quit instead of Ctrl-C; forced
+terminal interruption is not the confirmed-quit acceptance path. Do not mark
+this defect fixed solely because it stopped reproducing. Other manual cases
+may continue with this open intermittent defect retained. If it recurs, record
+submission route, input source, focus/hide-show history and whether recovery
+requires restarting; no credentials or raw editor contents are needed.
 
 ## Static inspection, not causal proof
 
