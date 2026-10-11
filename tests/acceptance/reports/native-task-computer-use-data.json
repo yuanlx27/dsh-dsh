@@ -1,0 +1,47 @@
+{
+  "environment": "installed-release-computer-use-partial",
+  "candidate_source": "2bdf282",
+  "fixture_source": "406082e",
+  "candidate": "/private/tmp/dsh manual install.bZA0oI/DeepSeek Harness Desktop.app",
+  "home": "/private/tmp/dsh-task-fixture-xHoqW0/native-home",
+  "workspace": "/private/tmp/dsh-task-fixture-xHoqW0/product/A",
+  "model": "desktop-fixture-model",
+  "protocol": "openai-completions",
+  "session": "d68aad58-7f53-4413-9efa-f6269d171664",
+  "owned_app_launcher_node": [16972, 16986, 16987],
+  "supplier_pid": 75524,
+  "window_id_before_after_hide": [4693, 4693],
+  "case_sequences": {
+    "deny": {"start": 55, "call": 62, "ask": 63, "decision": 64, "result": 65, "end": 70},
+    "allow_after_hide": {"start": 72, "call": 77, "ask": 78, "decision": 79, "result": 80, "end": 85},
+    "stream_stop": {"start": 87, "interrupted_prefix": 91, "end": 93},
+    "action_stop": {"start": 95, "call": 100, "ask": 101, "decision": 102, "result": 103, "end": 105}
+  },
+  "outcomes": {
+    "deny_audited_error_and_no_file": true,
+    "pending_hide_undecided_no_file": true,
+    "same_owned_trio_retained": true,
+    "same_window_retained": true,
+    "allow_once_success_and_exact_marker": true,
+    "stream_stop_aborted_nonempty_interrupted_prefix": true,
+    "action_started_before_stop": true,
+    "action_stop_aborted_errored_result": true,
+    "started_preserved_finished_absent": true,
+    "stay_retains_trio": true,
+    "confirmed_quit_captured_trio_clean": true,
+    "owned_supplier_closed": true
+  },
+  "selected_ui_states": {
+    "deny_decided": "6e799868-4adf-4b85-ab44-ae6240b31c69",
+    "restored_pending": "e9da8668-d0b1-4845-9a42-017276f22ccd",
+    "stream_running": "0035ed47-1a27-4b53-9700-068be824088b",
+    "action_stopped": "63c22487-e33b-4a99-9976-6585d0e1e69a"
+  },
+  "extension_native_dialog_observation": "failed-owner-or-window-zero",
+  "native_dialog_fallback": "System Events AX buttons, exact owned unix ID",
+  "hide_show_trials": 1,
+  "confirmed_quit_trials": 1,
+  "timing_qualified": false,
+  "full_task_matrix_qualified": false,
+  "platform_distribution_qualified": false
+}

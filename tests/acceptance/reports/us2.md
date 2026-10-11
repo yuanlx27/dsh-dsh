@@ -104,6 +104,10 @@ The [installed native decision subset](native-task-decisions.md) now correlates
 actual pending/Reject UI observations with a rejected audit, errored tool result
 and independent marker absence before/after the decision. Other native cases
 and timing/identity gates remain pending.
+The [computer-use native subset](native-task-computer-use.md) subsequently
+executes real Reject, pending close/reopen/Allow once, streamed Stop and started
+foreground action Stop, with selected PID/window retention and confirmed cleanup.
+It is an actual installed release run, but not the full task/latency/lifecycle matrix.
 
 ## Still pending
 
