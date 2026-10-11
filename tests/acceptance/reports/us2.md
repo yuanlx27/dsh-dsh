@@ -109,21 +109,32 @@ executes real Reject, pending close/reopen/Allow once, streamed Stop and started
 foreground action Stop, with selected PID/window retention and confirmed cleanup.
 It is an actual installed release run, but not the full task/latency/lifecycle matrix.
 
+The subsequent [native queue/steer continuation](native-queue-steer.md) and
+live standalone backend regression preserve two identical queued inputs with
+distinct receipts through explicit steering and delivery. The native pending
+approval panel exposes no established Stop/withdrawal route; cleanup Reject is
+not withdrawal. A later unsubmitted Escape-trial preparation lost controllable
+window observation, so automation stopped and owned resources were cleaned by
+TERM/private supplier close, not counted as confirmed-quit acceptance.
+
 ## Still pending
 
 T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),
 [T034 resources](task-fixture-preparation.md), and
 [T035 adapter-only regressions](task-forwarding.md).
 
-- Installed-native equivalents of the now-executed backend permission/gate,
-  advertisement, allow/deny/withdraw and foreground action-Stop cases; actual
-  browser/Remote decision routes and separate UI dismissal, in product roots.
-- Queued/steered/identical inputs, multiple workspaces/sessions, failed/interrupted
-  tasks and upstream requirement gaps.
+- Complete native permission/gate/action matrix beyond the correlated real
+  Reject/Allow/Stop subset, especially supported withdrawal and separate UI
+  dismissal. Preserve the observed upstream presentation gap.
+- Queue-only natural draining, pending-queue Stop/order races beyond the executed
+  queue/steer/identical-receipt subset; multiple workspaces/sessions and
+  failed/interrupted tasks.
 - Installed native R frontend comparison, raw stream/transport fidelity,
   hide/show/reconnect and no replay, receiving-boundary/Stop latency measurements.
-- Exclusive interactive session before any native UI automation; the user's
-  ongoing manual session and intermittent composer defect remain undisturbed.
+- Controllable authorized interactive session for further native automation.
+  The user explicitly authorized isolated computer-use testing; this does not
+  authorize genuine-profile access or bypassing unavailable window observation.
+  The intermittent composer defect remains open.
 
 User-reported M01–M06 are separately recorded in [manual results](manual-results.md).
 They do not complete this controlled matrix, T032/T033, or SC-003/SC-004.

@@ -25,7 +25,7 @@ const runProfile = await functionExport<typeof RunProfile>("../../runtime/node_m
 const snapshot = await functionExport<typeof Snapshot>("../../runtime/node_modules/@deepseek-ai/dsh-launch-environment/lib/index.js", "createLaunchEnvironmentSnapshot");
 const brandString = await functionExport<typeof BrandString>("../../runtime/node_modules/@deepseek-ai/dsh-brand/lib/index.js", "brandString");
 const kind = process.argv[2];
-if (kind !== "complete" && kind !== "stop" && kind !== "allow" && kind !== "deny" && kind !== "withdraw" && kind !== "action-stop") throw Error("Unknown standalone case");
+if (kind !== "complete" && kind !== "stop" && kind !== "allow" && kind !== "deny" && kind !== "withdraw" && kind !== "action-stop" && kind !== "queue-steer") throw Error("Unknown standalone case");
 const toolCase = kind === "allow" || kind === "deny" || kind === "withdraw" || kind === "action-stop";
 const actionStop = kind === "action-stop";
 if (process.version !== "v24.21.0") throw Error("Standalone requires pinned Node");
@@ -100,6 +100,28 @@ try {
   }
   stage = "running";
   await waitRunning(true);
+  const queueIds: SessionRequestId[] = [];
+  let queueAdmissions = 0;
+  let queueSteers = 0;
+  let queuePendingObserved = false;
+  if (kind === "queue-steer") {
+    stage = "queue";
+    for (let index = 0; index < 2; index++) {
+      const id = brandString<SessionRequestId>(randomUUID());
+      queueIds.push(id);
+      const receipt = await ctx.sessionController.prompt({ sessionId, requestId: id, mode: "queue", content: [{ type: "text", text: "Controlled CU identical queued input." }] }, new AbortController().signal);
+      if (receipt.accepted) queueAdmissions++;
+    }
+    const pending = await ctx.sessionController.inspect(sessionId);
+    const queued = pending.events.flatMap(event => event.type === "agent/inbox/spliced" && event.data.target === "next-turn" ? event.data.inserted.filter(message => { const source = message.source; return "rpcId" in source && queueIds.some(id => id === source.rpcId); }) : []);
+    queuePendingObserved = queued.length === 2 && queued.every(message => message.content.some(part => part.type === "text" && part.text === "Controlled CU identical queued input."));
+    if (!queuePendingObserved) throw Error("Queue did not retain both public inputs");
+    stage = "steer";
+    for (const message of queued) {
+      const receipt = await ctx.sessionController.updateQueue({ sessionId, itemId: message.id, action: { kind: "steer" } });
+      if (receipt.accepted) queueSteers++;
+    }
+  }
   stage = kind === "stop" || kind === "withdraw" ? "cancel" : "release";
   if (toolCase) pendingNoEffect = !existsSync(join(process.cwd(), actionStop ? "stop-marker.txt" : "approval-marker.txt"));
   let actionRunningObserved = false;
@@ -123,7 +145,15 @@ try {
   if (kind === "withdraw") { answer("allowed-once"); await delay(100); }
   const asked = inspection.events.find(event => event.type === "approval/asked" && event.data.callId === gateCallId);
   const decisionExpected = toolCase && asked?.type === "approval/asked" && inspection.events.some(event => event.type === "approval/decided" && event.data.id === asked.data.id && event.data.outcome === (kind === "allow" || actionStop ? "allowed-once" : kind === "deny" ? "rejected" : "cancelled"));
+  const queueDelivered = inspection.events.filter(event => {
+    if (event.type !== "user/message") return false;
+    const source = event.data.source;
+    return "rpcId" in source && queueIds.some(id => id === source.rpcId) && event.data.content.some(part => part.type === "text" && part.text === "Controlled CU identical queued input.");
+  });
+  const queueReceiptsPreserved = queueIds.length === 2 && queueIds.every(id => inspection.events.filter(event => event.type === "user/message" && "rpcId" in event.data.source && event.data.source.rpcId === id).length === 1);
   const result = {
+    queueAdmissions, queueSteers, queueDeliveries: queueDelivered.length,
+    queuePendingObserved, queueReceiptsDistinct: queueIds.length === 2 && new Set(queueIds).size === 2, queueReceiptsPreserved,
     accepted: admission.accepted, runningObserved: true, settled: true, loopbackOnly: blockedExternal === 0,
     endExpected: inspection.events.some(event => event.type === "turn/end" && event.data.reason.kind === (kind === "stop" || kind === "withdraw" || actionStop ? "aborted" : "completed")),
     providerAuthenticated: provider.events.length > 0 && provider.events.every(event => event.credential === "first"),

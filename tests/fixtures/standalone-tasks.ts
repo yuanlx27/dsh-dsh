@@ -6,9 +6,15 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import { taskWorkspaces } from "./task-workspaces.ts";
 
-export type StandaloneTaskKind = "complete" | "stop" | "allow" | "deny" | "withdraw" | "action-stop";
+export type StandaloneTaskKind = "complete" | "stop" | "allow" | "deny" | "withdraw" | "action-stop" | "queue-steer";
 export interface StandaloneTaskResult {
   accepted: boolean;
+  queuePendingObserved: boolean;
+  queueReceiptsDistinct: boolean;
+  queueReceiptsPreserved: boolean;
+  queueAdmissions: number;
+  queueSteers: number;
+  queueDeliveries: number;
   runningObserved: boolean;
   settled: boolean;
   loopbackOnly: boolean;
@@ -64,8 +70,8 @@ export async function standaloneTaskCase(kind: StandaloneTaskKind): Promise<Stan
         if (!line.startsWith(prefix)) return;
         try {
           const value: unknown = JSON.parse(line.slice(prefix.length));
-          const bools = ["accepted", "runningObserved", "settled", "loopbackOnly", "endExpected", "providerAuthenticated", "interrupted", "prefixPreserved", "disposed", "gateObserved", "pendingNoEffect", "decisionExpected", "policyUnchanged", "toolSucceeded", "actionRunningObserved", "actionPrefixPreserved", "jobsQuiescent"];
-          const counts = ["promptCount", "turnStarts", "turnEnds", "assistantMessages", "approvalAsked", "approvalDecided", "toolCalls", "toolResults"];
+          const bools = ["queuePendingObserved", "queueReceiptsDistinct", "queueReceiptsPreserved", "accepted", "runningObserved", "settled", "loopbackOnly", "endExpected", "providerAuthenticated", "interrupted", "prefixPreserved", "disposed", "gateObserved", "pendingNoEffect", "decisionExpected", "policyUnchanged", "toolSucceeded", "actionRunningObserved", "actionPrefixPreserved", "jobsQuiescent"];
+          const counts = ["queueAdmissions", "queueSteers", "queueDeliveries", "promptCount", "turnStarts", "turnEnds", "assistantMessages", "approvalAsked", "approvalDecided", "toolCalls", "toolResults"];
           if (!value || typeof value !== "object" || Object.keys(value).length !== bools.length + counts.length ||
               !bools.every(key => key in value && typeof Reflect.get(value, key) === "boolean") ||
               !counts.every(key => key in value && Number.isSafeInteger(Reflect.get(value, key)) && Reflect.get(value, key) >= 0)) {

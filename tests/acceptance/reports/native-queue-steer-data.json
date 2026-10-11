@@ -1,0 +1,48 @@
+{
+  "candidate_source": "2bdf282",
+  "preceding_native_report_commit": "5708112",
+  "app_launcher_node": [31663, 31677, 31678],
+  "supplier": 31653,
+  "window": 5035,
+  "session": "d68aad58-7f53-4413-9efa-f6269d171664",
+  "native_adapter": "openai-completions",
+  "backend_comparison_adapter": "official-messages",
+  "withdrawal": {
+    "status": "blocked-native-control-route",
+    "call": 115,
+    "ask": 116,
+    "cleanup_decision": 117,
+    "cleanup_outcome": "rejected",
+    "error_result": 118,
+    "end": 123,
+    "end_reason": "completed",
+    "marker_absent_before_after": true
+  },
+  "queue_steer": {
+    "status": "passed-one-native-subset",
+    "turn_start": 125,
+    "queue_insertions": [129, 130],
+    "distinct_identical_receipts": 2,
+    "ui_pending_count": 2,
+    "next_turn_removals": [131, 133],
+    "next_step_insertions": [132, 134],
+    "bulk_steer_gestures": 1,
+    "next_step_drain": 137,
+    "delivered_user_messages": [139, 140],
+    "delivered_identical_receipts": 2,
+    "receipts_match": true,
+    "turn_end": 143,
+    "end_reason": "completed",
+    "same_trio_alive_after_completion": true
+  },
+  "later_escape_trial_submitted": false,
+  "later_preparation": "capture-failed-unresolved-window-observation",
+  "confirmed_quit_qualified": false,
+  "cleanup": {
+    "method": "TERM-only-proven-owned-app-then-private-supplier-close",
+    "captured_trio_absent": true,
+    "owned_supplier_absent": true
+  },
+  "full_task_matrix_qualified": false,
+  "timing_qualified": false
+}
