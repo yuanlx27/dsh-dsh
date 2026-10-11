@@ -33,3 +33,16 @@ test("controlled supplier rearms one-shot replies only between completed request
   } finally { await supplier.close(); }
   assert.throws(() => supplier.arm({}), /closed/);
 });
+
+test("controlled supplier can replace its own closed listener at the same loopback port", async () => {
+  const first = await controlledModel();
+  const port = Number(new URL(first.origin).port);
+  await first.close();
+  const replacement = await controlledModel({}, port);
+  try {
+    assert.equal(replacement.origin, first.origin);
+    const response = await fetch(`${replacement.origin}/v1/models`, { headers: { "x-api-key": "desktop-fixture-first" } });
+    assert.equal(response.status, 200);
+    await response.text();
+  } finally { await replacement.close(); }
+});

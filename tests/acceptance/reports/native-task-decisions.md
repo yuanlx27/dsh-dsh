@@ -71,11 +71,29 @@ ID shared by that response's chunks. Cross-arming Messages/OpenAI regressions
 failed before the fix and pass afterward; all 89 packaging/source/strict checks
 pass. No product transport, permission or downloaded upstream source is changed.
 
-The live supplier PID 9171 still runs the previously loaded source. It has **not**
-been restarted or patched by this source commit; native retry must wait for a
-scheduled fixture restart/reconfiguration. Preserve the concrete first Reject
+At the identity-fix checkpoint, the live supplier PID 9171 still ran the old
+loaded source. The user subsequently clarifies that the reported retry **never
+showed approval at all**; no pending hide/show was performed in that reported
+attempt. The second rejected audit cannot be assigned to that attempt or a hide
+failure from sequence numbers alone. Preserve the concrete first Reject
 observations, but do not treat repeated-ID trials as full provider identity
-qualification. User clarification of the hide/show/decision sequence is pending.
+qualification.
+
+The agent then closed only the owned supplier through its private file control,
+observed PID 9171 exit, and replaced it with PID **75524** on the **same literal
+loopback port 58426**. The native application, HOME, conversation and credential
+configuration were not restarted, edited or automated. Public ready metadata and
+the selected process's listener were verified; A remains README-only. Fresh UUID
+reply/tool identities are now active in the replacement, initially armed for
+approval. No synthetic streaming self-test consumed this new one-shot response.
+
+The optional owned-port resource/CLI support was tested RED then GREEN, including
+closure/rebinding/authenticated model discovery, invalid CLI port refusal, all
+**90** packaging tests, source policy and strict tooling/browser checks. This
+replacement is fixture preparation, not a native Retry/service-restart test or
+proof that any GUI defect is fixed. Next submission must be exactly one explicit
+request in the current A/read-only Session, with no hide or decision until the
+actual pending approval and file absence are observed.
 
 ## Remaining qualification
 

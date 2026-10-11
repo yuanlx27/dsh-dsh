@@ -12,7 +12,8 @@ export interface ControlledModelOptions {
 }
 
 /** Loopback-only model resource; upstream dsh remains the real engine/credential owner. */
-export async function controlledModel(options: ControlledModelOptions = {}) {
+export async function controlledModel(options: ControlledModelOptions = {}, port = 0) {
+  if (!Number.isInteger(port) || port < 0 || port > 65535) throw Error("Invalid fixture listener port");
   const events: ProviderEvent[] = [];
   let toolIssued = false;
   let active = 0;
@@ -91,7 +92,7 @@ export async function controlledModel(options: ControlledModelOptions = {}) {
       else { response.writeHead(400); response.end(JSON.stringify({ error: "Invalid controlled fixture input" })); }
     }
   });
-  await new Promise<void>((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
+  await new Promise<void>((resolve, reject) => { server.once("error", reject); server.listen(port, "127.0.0.1", resolve); });
   const address = server.address();
   if (address === null || typeof address === "string") throw Error("Fixture listener unavailable");
   return {
