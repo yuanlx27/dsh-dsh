@@ -15,4 +15,7 @@ jobs:
           node-version: "24.21.0"
       - run: npm run check:source
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      # Fixtures import upstream declarations from the locked runtime packages.
+      # Type checking needs no native builds or macOS runtime staging.
+      - run: npm ci --prefix runtime --omit=dev --ignore-scripts --no-audit --no-fund
       - run: npm run typecheck:tools
