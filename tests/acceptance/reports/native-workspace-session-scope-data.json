@@ -1,0 +1,58 @@
+{
+  "candidate_source": "2bdf282",
+  "adapter": "custom-openai-completions",
+  "supplier": 17510,
+  "app_launcher_node": [17533, 17547, 17548],
+  "window": 5985,
+  "failed_preparation": {"a_start": 161, "a_end": 184, "reason": "error", "b_submission": false},
+  "directory_picker": {
+    "first_owned_node_child": 17642,
+    "first_selection_actor_established": false,
+    "old_standalone_b_rejected_for_trial": true,
+    "second_owned_node_child": 20179,
+    "native_ax_search_max_nodes": 256,
+    "native_ax_search_max_depth": 7,
+    "choose_ax_press_attempts": 1,
+    "ax_reported_success": false,
+    "postcondition_product_b_registered": true,
+    "postcondition_picker_exit": true,
+    "action_replayed": false
+  },
+  "a": {
+    "session": "d68aad58-7f53-4413-9efa-f6269d171664",
+    "start": 186,
+    "matching_rpc_user": 189,
+    "matching_human_inputs": 1,
+    "assistant": 190,
+    "nonempty": true,
+    "interrupted": true,
+    "end": 192,
+    "reason": "aborted"
+  },
+  "b": {
+    "session": "8d69eb73-4c1f-4cfe-9d68-bed4d7226beb",
+    "read_only_preset_mode": [4, 5],
+    "ask_policy": 2,
+    "start": 8,
+    "matching_rpc_user": 12,
+    "matching_human_inputs": 1,
+    "additional_nonmatching_context_user": 13,
+    "assistant": 18,
+    "nonempty": true,
+    "interrupted": false,
+    "end": 20,
+    "reason": "completed"
+  },
+  "selected_ui_states": {
+    "two_running_before_a_stop": "dca11aff-245d-4878-8da9-cda2c125a6a1",
+    "a_stopped": "de8c3429-a29b-471f-91ad-24ccbf73f4f8",
+    "b_stop_still_present_after_a_stop": "d4cf7501-9fa3-4f3a-92f4-a2e8c4bf55a2",
+    "b_completed_after_supplier_finish": "e882bcd9-886a-4ab0-bd8b-bf3df32b40d9"
+  },
+  "native_dialog_extension_observation": "failed-owner",
+  "native_quit": "exact-owned-PID-System-Events-confirmed",
+  "captured_trio_exit_verified": true,
+  "owned_supplier_exit_verified": true,
+  "timing_qualified": false,
+  "full_task_matrix_qualified": false
+}

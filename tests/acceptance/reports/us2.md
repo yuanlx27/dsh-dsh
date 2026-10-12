@@ -133,6 +133,14 @@ trio, with an exact-PID Accessibility fallback for the still-unobservable modal.
 This is actual installed UI evidence, not proof that caffeinate caused recovery
 or full task/latency/quit qualification.
 
+The subsequent [native two-workspace/session scope case](native-workspace-session-scope.md)
+correlates two original Running entries, Stop A with an interrupted/aborted
+record, and B still running before controlled response release and independent
+completion. It records the failed long preparation and checks exact directory
+registration before submission, rather than accepting ambiguous B labels. Native
+chooser/modal controls require bounded exact-owned-PID AX fallback. All captured
+processes are now cleaned by confirmed native quit/private supplier close.
+
 ## Still pending
 
 T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),
@@ -144,8 +152,8 @@ T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),
   dismissal. Preserve the observed upstream presentation gap.
 - Queue-only natural draining, pending-queue Stop/order races beyond the executed
   queue/steer/identical-receipt and now native queued-Stop subsets. Backend
-  two-session isolation has direct-service evidence; its native counterpart,
-  full workspace/session matrix and failed/interrupted tasks remain.
+  two-workspace/two-session scoped Stop now has backend and native subsets;
+  full workspace/session/quit matrix and failed/interrupted tasks remain.
 - Installed native R frontend comparison, raw stream/transport fidelity,
   hide/show/reconnect and no replay, receiving-boundary/Stop latency measurements.
 - Controllable authorized interactive session for further native automation.
