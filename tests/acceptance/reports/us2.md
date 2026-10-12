@@ -117,6 +117,14 @@ not withdrawal. A later unsubmitted Escape-trial preparation lost controllable
 window observation, so automation stopped and owned resources were cleaned by
 TERM/private supplier close, not counted as confirmed-quit acceptance.
 
+The [backend queue Stop and session-scope cases](backend-queue-stop-and-session-scope.md)
+now verify that scoped Stop leaves two identical pending inputs intact without
+resuming them during a bounded observation, and that stopping A leaves B running
+in a second disposable workspace. These are actual service tests, not native
+workspace/queue/quit qualification. An explicitly authorized computer-use retry
+found the isolated App but semantic observation timed out; no task control was
+executed and the owned supplier was closed.
+
 ## Still pending
 
 T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),
@@ -127,8 +135,9 @@ T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),
   Reject/Allow/Stop subset, especially supported withdrawal and separate UI
   dismissal. Preserve the observed upstream presentation gap.
 - Queue-only natural draining, pending-queue Stop/order races beyond the executed
-  queue/steer/identical-receipt subset; multiple workspaces/sessions and
-  failed/interrupted tasks.
+  queue/steer/identical-receipt subset. Backend queued Stop and two-session
+  isolation now have direct-service evidence; native counterparts, full
+  workspace/session matrix and failed/interrupted tasks remain.
 - Installed native R frontend comparison, raw stream/transport fidelity,
   hide/show/reconnect and no replay, receiving-boundary/Stop latency measurements.
 - Controllable authorized interactive session for further native automation.

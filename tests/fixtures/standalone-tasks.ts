@@ -6,16 +6,24 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import { taskWorkspaces } from "./task-workspaces.ts";
 
-export type StandaloneTaskKind = "complete" | "stop" | "allow" | "deny" | "withdraw" | "action-stop" | "queue-steer";
+export type StandaloneTaskKind = "complete" | "stop" | "allow" | "deny" | "withdraw" | "action-stop" | "queue-steer" | "queue-stop" | "multi-session-stop";
 export interface StandaloneTaskResult {
   accepted: boolean;
   queuePendingObserved: boolean;
+  queueRetainedAfterStop: boolean;
+  queueNoAutoResume: boolean;
+  queuePendingAfterStop: number;
   queueReceiptsDistinct: boolean;
   queueReceiptsPreserved: boolean;
   queueAdmissions: number;
   queueSteers: number;
   queueDeliveries: number;
   runningObserved: boolean;
+  multiRunningObserved: boolean;
+  otherRunningAfterStop: boolean;
+  otherCompleted: boolean;
+  otherPromptCount: number;
+  otherWorkspaceUnchanged: boolean;
   settled: boolean;
   loopbackOnly: boolean;
   endExpected: boolean;
@@ -44,7 +52,7 @@ export interface StandaloneTaskResult {
   workspaceUnchanged: boolean;
   exitCode: number | null;
 }
-type ChildTaskResult = Omit<StandaloneTaskResult, "workspaceUnchanged" | "workspaceExpected" | "markerApproved" | "exitCode">;
+type ChildTaskResult = Omit<StandaloneTaskResult, "workspaceUnchanged" | "workspaceExpected" | "markerApproved" | "exitCode" | "otherWorkspaceUnchanged">;
 const prefix = "DSH_TASK_RESULT ";
 
 /** A child owns the real R web profile; no inherited credentials or GUI interaction. */
@@ -55,8 +63,10 @@ export async function standaloneTaskCase(kind: StandaloneTaskKind): Promise<Stan
     await mkdir(home, { mode: 0o700 });
     const workspace = spaces.standalone.A;
     const before = await readFile(join(workspace, "README.md"), "utf8");
+    const otherWorkspace = spaces.standalone.B;
+    const otherBefore = await readFile(join(otherWorkspace, "README.md"), "utf8");
     return await new Promise<StandaloneTaskResult>((resolve, reject) => {
-      const child = spawn(process.execPath, [fileURLToPath(new URL("./standalone-task-driver.ts", import.meta.url)), kind], {
+      const child = spawn(process.execPath, [fileURLToPath(new URL("./standalone-task-driver.ts", import.meta.url)), kind, otherWorkspace], {
         cwd: workspace,
         env: { HOME: home, DSH_HOME: home, PATH: "/usr/bin:/bin", TMPDIR: tmpdir(), DSH_TELEMETRY_DISABLED: "1" },
         stdio: ["ignore", "pipe", "ignore"]
@@ -70,8 +80,8 @@ export async function standaloneTaskCase(kind: StandaloneTaskKind): Promise<Stan
         if (!line.startsWith(prefix)) return;
         try {
           const value: unknown = JSON.parse(line.slice(prefix.length));
-          const bools = ["queuePendingObserved", "queueReceiptsDistinct", "queueReceiptsPreserved", "accepted", "runningObserved", "settled", "loopbackOnly", "endExpected", "providerAuthenticated", "interrupted", "prefixPreserved", "disposed", "gateObserved", "pendingNoEffect", "decisionExpected", "policyUnchanged", "toolSucceeded", "actionRunningObserved", "actionPrefixPreserved", "jobsQuiescent"];
-          const counts = ["queueAdmissions", "queueSteers", "queueDeliveries", "promptCount", "turnStarts", "turnEnds", "assistantMessages", "approvalAsked", "approvalDecided", "toolCalls", "toolResults"];
+          const bools = ["multiRunningObserved", "otherRunningAfterStop", "otherCompleted", "queueRetainedAfterStop", "queueNoAutoResume", "queuePendingObserved", "queueReceiptsDistinct", "queueReceiptsPreserved", "accepted", "runningObserved", "settled", "loopbackOnly", "endExpected", "providerAuthenticated", "interrupted", "prefixPreserved", "disposed", "gateObserved", "pendingNoEffect", "decisionExpected", "policyUnchanged", "toolSucceeded", "actionRunningObserved", "actionPrefixPreserved", "jobsQuiescent"];
+          const counts = ["otherPromptCount", "queuePendingAfterStop", "queueAdmissions", "queueSteers", "queueDeliveries", "promptCount", "turnStarts", "turnEnds", "assistantMessages", "approvalAsked", "approvalDecided", "toolCalls", "toolResults"];
           if (!value || typeof value !== "object" || Object.keys(value).length !== bools.length + counts.length ||
               !bools.every(key => key in value && typeof Reflect.get(value, key) === "boolean") ||
               !counts.every(key => key in value && Number.isSafeInteger(Reflect.get(value, key)) && Reflect.get(value, key) >= 0)) {
@@ -87,12 +97,12 @@ export async function standaloneTaskCase(kind: StandaloneTaskKind): Promise<Stan
         clearTimeout(timeout); clearTimeout(force); lines.close();
         if (failure || !result || exitCode !== 0) { reject(Error(failure ?? `Standalone fixture failed (exit ${exitCode})`)); return; }
         const captured = result;
-        void Promise.all([readdir(workspace), readFile(join(workspace, "README.md"), "utf8")]).then(async ([entries, after]) => {
+        void Promise.all([readdir(workspace), readFile(join(workspace, "README.md"), "utf8"), readdir(otherWorkspace), readFile(join(otherWorkspace, "README.md"), "utf8")]).then(async ([entries, after, otherEntries, otherAfter]) => {
           const markerApproved = entries.includes("approval-marker.txt") && await readFile(join(workspace, "approval-marker.txt"), "utf8") === "approved\n";
           const workspaceUnchanged = entries.length === 1 && entries[0] === "README.md" && before === after;
           const actionStopped = kind === "action-stop" && entries.includes("stop-marker.txt") && await readFile(join(workspace, "stop-marker.txt"), "utf8") === "started\n";
           const workspaceExpected = before === after && (kind === "allow" ? markerApproved && entries.sort().join(",") === "README.md,approval-marker.txt" : kind === "action-stop" ? actionStopped && entries.sort().join(",") === "README.md,stop-marker.txt" : workspaceUnchanged);
-          resolve({ ...captured, exitCode, markerApproved, workspaceExpected, workspaceUnchanged });
+          resolve({ ...captured, exitCode, markerApproved, workspaceExpected, workspaceUnchanged, otherWorkspaceUnchanged: otherEntries.length === 1 && otherEntries[0] === "README.md" && otherBefore === otherAfter });
         }).catch(reject);
       });
     });
