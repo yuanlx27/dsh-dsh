@@ -125,6 +125,14 @@ workspace/queue/quit qualification. An explicitly authorized computer-use retry
 found the isolated App but semantic observation timed out; no task control was
 executed and the owned supplier was closed.
 
+A later user-monitored [native queued Stop retry](native-queued-stop.md) restores
+normal computer-use controls: original Stop aborts the active streamed task,
+retains both distinct identical queued receipts with no deliveries, and original
+Remove buttons explicitly clean them. Confirmed native quit cleans the captured
+trio, with an exact-PID Accessibility fallback for the still-unobservable modal.
+This is actual installed UI evidence, not proof that caffeinate caused recovery
+or full task/latency/quit qualification.
+
 ## Still pending
 
 T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),
@@ -135,9 +143,9 @@ T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),
   Reject/Allow/Stop subset, especially supported withdrawal and separate UI
   dismissal. Preserve the observed upstream presentation gap.
 - Queue-only natural draining, pending-queue Stop/order races beyond the executed
-  queue/steer/identical-receipt subset. Backend queued Stop and two-session
-  isolation now have direct-service evidence; native counterparts, full
-  workspace/session matrix and failed/interrupted tasks remain.
+  queue/steer/identical-receipt and now native queued-Stop subsets. Backend
+  two-session isolation has direct-service evidence; its native counterpart,
+  full workspace/session matrix and failed/interrupted tasks remain.
 - Installed native R frontend comparison, raw stream/transport fidelity,
   hide/show/reconnect and no replay, receiving-boundary/Stop latency measurements.
 - Controllable authorized interactive session for further native automation.
