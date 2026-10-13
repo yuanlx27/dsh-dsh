@@ -1,8 +1,7 @@
 use super::tests::fixture;
-#[path = "../../tests/transport/fixture.rs"]
-mod io;
 use crate::http_transport::{Body, HttpRequest, Transport};
 use crate::stream_transport::{Frame, StreamTransport};
+use crate::test_transport as io;
 use reqwest::{Method, header::HeaderMap};
 use tokio::sync::watch;
 

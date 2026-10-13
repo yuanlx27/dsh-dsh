@@ -1,7 +1,6 @@
 use super::{Operation, tests::fixture};
-#[path = "../../tests/transport/fixture.rs"]
-mod io;
 use crate::dispatch::Dispatcher;
+use crate::test_transport as io;
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde_json::json;
 use std::sync::Arc;

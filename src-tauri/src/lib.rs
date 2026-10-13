@@ -1,5 +1,8 @@
 #[cfg(test)]
 extern crate self as deepseek_harness_desktop;
+#[cfg(test)]
+#[path = "../tests/transport/fixture.rs"]
+mod test_transport;
 
 pub mod app;
 pub mod authentication;

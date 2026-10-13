@@ -1,7 +1,6 @@
 use super::*;
-#[path = "../../tests/transport/fixture.rs"]
-mod io_fixture;
 use crate::runtime::tests::fixture;
+use crate::test_transport as io_fixture;
 #[tokio::test]
 async fn joined_start_is_ready_after_auth_and_preparation_but_entry_needs_saved_notice() {
     let io = io_fixture::Fixture::new().await;

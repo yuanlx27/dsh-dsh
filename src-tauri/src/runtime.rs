@@ -390,10 +390,12 @@ async fn owner(
                         let _ = reply.send(Err(Failure::Unavailable)); continue;
                     }
                     if let Some(value) = startup.take() { value.discard_token(); }
-                    state.send_replace(State::Failed(generation, category));
+                    // Failure revokes authority immediately, but pending owned cleanup
+                    // is not proof of exit for native quit or replacement admission.
+                    state.send_replace(State::Failed(generation, if process.is_some() { Failure::Cleanup } else { category }));
                     let result = if let Some(p) = process.as_mut() { p.stop().await } else { Ok(()) };
                     if result.is_ok() { process = None; }
-                    else { state.send_replace(State::Failed(generation, Failure::Cleanup)); }
+                    state.send_replace(State::Failed(generation, if result.is_ok() { category } else { Failure::Cleanup }));
                     for waiter in waiters.drain(..) { let _ = waiter.send(Err(category)); }
                     let _ = reply.send(result);
                 }
@@ -416,7 +418,7 @@ async fn owner(
                         startup = Some(value);
                     }
                     Err(error) => {
-                        state.send_replace(State::Failed(generation, error));
+                        state.send_replace(State::Failed(generation, if process.is_some() { Failure::Cleanup } else { error }));
                         let clean = if let Some(p) = process.as_mut() { p.stop().await.is_ok() } else { true };
                         if clean { process = None; }
                         let error = if clean { error } else { Failure::Cleanup };
@@ -427,7 +429,7 @@ async fn owner(
             },
             _ = tokio::time::sleep_until(deadline), if matches!(*state.borrow(), State::Starting(_)) => {
                 if let Some(value) = startup.take() { value.discard_token(); }
-                state.send_replace(State::Failed(generation, Failure::Timeout));
+                state.send_replace(State::Failed(generation, if process.is_some() { Failure::Cleanup } else { Failure::Timeout }));
                 let clean = if let Some(p) = process.as_mut() { p.stop().await.is_ok() } else { true };
                 if clean { process = None; }
                 let error = if clean { Failure::Timeout } else { Failure::Cleanup };

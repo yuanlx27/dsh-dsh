@@ -118,7 +118,12 @@ async fn startup_deadline_includes_authentication_and_revokes_the_token() {
     tokio::time::advance(Duration::from_secs(16)).await;
     tokio::time::resume();
     tokio::time::timeout(Duration::from_secs(2), async {
-        while !matches!(*state.borrow_and_update(), State::Failed(_, _)) {
+        // The deadline first revokes into unconfirmed cleanup; the final
+        // Timeout category is published only after the owned child exits.
+        while !matches!(
+            *state.borrow_and_update(),
+            State::Failed(_, Failure::Timeout)
+        ) {
             state.changed().await.unwrap();
         }
     })
@@ -160,6 +165,36 @@ async fn native_connection_failure_cleans_before_retry_and_rejects_late_failure(
     );
     assert_eq!(runtime.state(), State::Starting(next.generation));
     runtime.stop().await.unwrap();
+}
+
+#[tokio::test]
+async fn failure_cleanup_must_remain_live_for_quit_until_owned_exit_is_confirmed() {
+    let (root, runtime) = fixture(
+        "echo 'dsh web: http://127.0.0.1:54321/?token=fixture'\nIFS= read -r stop\nwhile [ ! -e release-cleanup ]; do sleep 0.02; done\nexit 0",
+    );
+    let startup = runtime.start().await.unwrap();
+    runtime.complete(startup.generation).await.unwrap();
+    let mut states = runtime.subscribe();
+    let failing = runtime.clone();
+    let failure =
+        tokio::spawn(async move { failing.fail(startup.generation, Failure::Connection).await });
+    tokio::time::timeout(Duration::from_secs(3), async {
+        while !matches!(*states.borrow_and_update(), State::Failed(_, _)) {
+            states.changed().await.unwrap();
+        }
+    })
+    .await
+    .unwrap();
+    let during_cleanup = runtime.state();
+    // Release and join the positively owned child even if the later assertion fails.
+    fs::write(root.path().join("release-cleanup"), b"release\n").unwrap();
+    failure.await.unwrap().unwrap();
+    assert!(
+        crate::quit::service_alive(during_cleanup),
+        "Quit must not treat pending owned cleanup as no service"
+    );
+    assert_eq!(runtime.state(), State::Failed(1, Failure::Connection));
+    assert!(!crate::quit::service_alive(runtime.state()));
 }
 
 #[test]
