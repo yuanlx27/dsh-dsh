@@ -141,6 +141,13 @@ registration before submission, rather than accepting ambiguous B labels. Native
 chooser/modal controls require bounded exact-owned-PID AX fallback. All captured
 processes are now cleaned by confirmed native quit/private supplier close.
 
+The [service recovery core/presentation continuation](us2-recovery.md) composes
+actual owned synthetic-child exit with auth/permit/opaque-handle revocation and
+explicit generation-two startup, rejecting old buffered work. It corrects the
+startup-only exit wording with a RED-to-GREEN shell regression. These core tests
+do not replace installed dsh/WK service-exit, task-history or Retry acceptance;
+the prior installed candidate still lacks the updated shell text.
+
 ## Still pending
 
 T036 remains **unchecked**. See [task/control procedures](../tasks-control.md),

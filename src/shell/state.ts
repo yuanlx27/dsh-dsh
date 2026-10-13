@@ -4,7 +4,7 @@ const failures = {
   invalidBundle: ["The installed runtime is missing, damaged or incompatible.", "Reinstall a matching build."],
   launch: ["The local service could not start.", "Retry or reinstall a matching build."],
   timeout: ["The local service did not become available in time.", "Retry startup."],
-  earlyExit: ["The local service stopped during startup.", "Retry startup."],
+  earlyExit: ["The local dsh service stopped. Any active work was interrupted.", "Retry restarts the service without resubmitting inputs. Review task history in Harness."],
   connection: ["The authenticated local connection is unavailable.", "Retry the connection."],
   cleanup: ["Service cleanup could not be confirmed.", "Do not start another service; quit and check the local installation."],
   preferences: ["Application preferences could not be saved.", "Check local application-data access and try again."],

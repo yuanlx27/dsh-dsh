@@ -48,6 +48,31 @@ test("explicit retry and available are service states, not duplicated task readi
   assert.ok(controller.view.message.includes("Harness"));
 });
 
+test("service exit reports interrupted work and waits for explicit Retry without resubmitting", async () => {
+  let retries = 0;
+  let entries = 0;
+  const controller = new ShellController({
+    status: async () => ({ ...status, acknowledged: true, phase: "failed", failure: "earlyExit" }),
+    acknowledge: async () => status,
+    retry: async () => { retries++; return { ...status, acknowledged: true }; },
+    enter: async () => { entries++; },
+  });
+  await controller.refresh();
+  await controller.refresh();
+  assert.equal(retries, 0);
+  assert.equal(entries, 0);
+  assert.equal(controller.view.canEnter, false);
+  assert.equal(controller.view.canRetry, true);
+  assert.match(controller.view.message, /interrupted/i);
+  assert.doesNotMatch(controller.view.message, /during startup/i);
+  assert.match(controller.view.nextAction, /without resubmitting/i);
+  assert.match(controller.view.nextAction, /history/i);
+  await controller.retry();
+  assert.equal(retries, 1);
+  assert.equal(entries, 0);
+  assert.equal(controller.view.canEnter, true);
+});
+
 test("late status cannot overwrite a newer saved notice decision", async () => {
   let resolveStatus: (v: ShellSnapshot) => void = () => {};
   const controller = new ShellController({ status: () => new Promise(r => { resolveStatus = r; }), acknowledge: async () => ({ ...status, acknowledged: true }), retry: async () => status, enter: async () => {} });
