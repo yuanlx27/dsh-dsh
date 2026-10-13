@@ -11,6 +11,7 @@
     "build:frontend": "node scripts/build-frontend.ts",
     "runtime:prepare": "node scripts/prepare-runtime.ts",
     "runtime:verify": "node scripts/verify-runtime.ts",
+    "package:macos": "node scripts/package-macos.ts",
     "test:packaging": "node --test tests/packaging/*.test.ts",
     "check:source": "node --test tests/packaging/source-policy.test.ts",
     "typecheck:tools": "tsc --project tsconfig.tools.json && tsc --project tsconfig.acceptance.json",

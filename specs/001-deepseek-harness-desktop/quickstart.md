@@ -3,10 +3,11 @@
 ## Status and prerequisites
 
 Runtime, authentication, native transport, shell/lifecycle and explicit recovery
-are implemented with scoped installed-app evidence. Default Rust and 97 Node
+are implemented with scoped installed-app evidence. Default Rust and 107 Node
 packaging checks pass; strict tooling/browser checks and desktop all-target
 Clippy pass. Full functional/quantitative/native reference/minimum-OS acceptance
-and maintained local .app/DMG packaging remain incomplete. See actual results in
+remain incomplete. Maintained local ad-hoc .app/DMG packaging is now executed;
+public distribution is not qualified. See actual results in
 `tests/acceptance/reports/`, including `task-sweep.md`, not a blanket release claim.
 
 All committed JS/TS-layer source is TypeScript. Node 24.21.0 directly runs tooling
@@ -43,13 +44,17 @@ cargo test --manifest-path src-tauri/Cargo.toml
 npm run test:packaging
 npm run tauri:dev
 npm run tauri:build -- --bundles app
+npm run package:macos -- --output /ABSOLUTE/NEW/OUTPUT_DIRECTORY
 ```
 
 These commands stage the locked build-time runtime, verify canonical version and
 closure, run core/tooling tests and create a Tauri build candidate.
 `runtime:verify` fails on a deliberately mismatched manifest/package. A raw build
-candidate is not a finalized distribution: resource symlinks/nested signatures
-and final inventory require the pending maintained T052 packaging procedure.
+candidate is not a finalized distribution. `package:macos` stages/builds current
+source and finalizes a NEW copied app, restores links, signs nested code, records
+final hashes, outer-signs and verifies app/read-only mounted DMG without changing
+sealed resources. See [local distribution](../../../tests/acceptance/reports/local-distribution.md).
+Failed output is incomplete and never implicitly reused/overwritten.
 Development success is not a substitute for installed native-build acceptance.
 The command sequence above does not establish final signing/manifest ordering;
 T052's planned `scripts/package-macos.ts` procedure must sign nested resources,
@@ -59,9 +64,9 @@ and WebSocket paths; Electron-only tests do not prove the Tauri adaptation.
 
 ## Delivery modes and final packaging
 
-Current executed delivery evidence is an isolated locally installed ad-hoc-signed
-.app; maintained .app/DMG packaging and final installed-distribution qualification
-remain pending. It requires no
+Current evidence includes isolated installed-app behavioral subsets and maintained
+local ad-hoc .app/DMG signing/native mounted verification. Full installed GUI,
+clean-account/minimum-OS/quantitative/final-distribution acceptance remains pending. It requires no
 Apple developer account and makes no claim of Apple notarization or Gatekeeper
 acceptance on another computer. Do not disable system security controls to obtain
 passing evidence. If a host rejects installation/launch, record that limitation.

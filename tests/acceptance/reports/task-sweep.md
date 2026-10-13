@@ -20,6 +20,9 @@ prerequisite's installed/security/quantitative acceptance.
   addon build, five prescribed official suites **101 passed**; no official GUI.
 - **T051**: O/R change-review checklist and plan/research A1–A6 traceability review;
   affected evidence must be invalidated/retested before changing baselines.
+- **T052**: maintained local ad-hoc stage/build/sign/final-inventory/app-DMG
+  command executed; 17 nested signatures/26,761 hashes and native mounted
+  verification/addon loading. [Report](local-distribution.md), 107 packaging tests.
 - **T059 preparation only**: README/quickstart describe implemented commands,
   actual partial status, close versus quit, explicit recovery and accepted
   plaintext/bearer limits; raw candidates are not final distribution artifacts.
@@ -29,7 +32,7 @@ prerequisite's installed/security/quantitative acceptance.
 Also fixed a proven pending-cleanup/quit race RED→GREEN, without new task/owner
 subsystems, and resolved duplicate-fixture all-target Clippy through reuse.
 The [alignment report](alignment.md) records limits. No updated installed Rust
-candidate is implied. With six bounded completed tasks, **39/59** are checked;
+candidate is implied. With seven bounded completed tasks, **40/59** are checked;
 functional/native/environment/final documentation gates remain open.
 
 ## Every other unfinished task inspected
@@ -48,8 +51,7 @@ functional/native/environment/final documentation gates remain open.
 | T048 | Product subsets and O unit results available; **verified isolated official native artifact** still pending. Can prepare/build it independently; do not infer artifact provenance or share product data roots |
 | T049 | Same official artifact prerequisite plus ten native Stay→confirm trials/route-focus matrix. Unit unknown/disposal tests supplement, never replace ownerless native/zero-window execution |
 | T050 | Actual cleanup-state correction and regression done in this sweep; keep task open until remaining T048/T049 findings and affected installed scenarios are rerun |
-| T052 | **Runnable next implementation**: reuse acceptance-only finalization and runtime inventory helpers as maintained TypeScript staging/nested-sign/final-manifest/outer-sign/app-DMG procedure. No Developer ID requirement for local completion |
-| T053 | **Runnable packaging cases**, with final signed/installed cases dependent on T052. Reuse existing closure/addon/version/path fixtures, no duplicate inventory authority |
+| T053 | Ten portable cases plus actual installed/mounted Node/SDK native loads pass, reusing one inventory algorithm. Fresh installed GUI/About/full startup-download observation remains pending; unit signer is explicit fake, not native acceptance |
 | T054 | Semantic/AX and focused keyboard subsets exist. Full keyboard-only/VoiceOver startup/notice/retry/ownerless-quit qualification still pending; no generic accessibility bypass or product-wide WCAG claim |
 | T055 | Final T052 distribution and a genuinely clean account required; macOS 14 Apple Silicon runner unavailable. Private HOME on this host is not a clean OS account/minimum OS. Public signing/Gatekeeper remains deferred |
 | T056 | Installed negative subsets exist; final-candidate access/native lifetime negatives plus bounded idle/setup/task traffic and remote direct admission remain open. Only public loopback fixtures; no secret dumps |
@@ -57,8 +59,8 @@ functional/native/environment/final documentation gates remain open.
 | T058 | Final-artifact cross-story reconciliation depends on remaining functional/security/performance/environment gates. Local ad-hoc and deferred public readiness separate; cannot declare final release while prerequisite gates fail/pending |
 | T059 | Current README/quickstart preparation implemented; final documentation qualification depends on T058/final workflow. Keep unchecked rather than promote conditional work |
 
-T041 is now complete at fixture scope. T052 and early T053 work remain explicitly
-**ready**, not falsely labelled blocked. Native matrices can continue when exact observation is reliable, using
+T041 is complete at fixture scope and T052 at local ad-hoc packaging scope.
+Remaining T053/native cases are **ready**, not falsely labelled blocked. Native matrices can continue when exact observation is reliable, using
 only prepared private roots/proven processes. Unreliable observations pause that
 operation, not unrelated tooling/docs/reference work. Subsequent sweep iterations
 must implement these ready tasks and refresh this table/results, not treat this

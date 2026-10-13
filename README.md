@@ -14,7 +14,8 @@ Experimental macOS Tauri shell for bundled **dsh 0.2.0-rc.2** and
 **Node 24.21.0**. The original upstream Harness owns models, credentials,
 workspaces, tasks, approvals and history. Native transport, window lifecycle
 and explicit recovery are implemented and have scoped installed-app evidence;
-full acceptance and local distribution packaging are not complete.
+full acceptance is not complete. Maintained local ad-hoc .app/DMG packaging
+and native mounted verification are implemented, not public-release qualification.
 
 Target: macOS 14+ Apple Silicon. Installed candidates have been tested on
 macOS 27.0.1; macOS 14, clean-account and final DMG qualification remain pending.
@@ -39,15 +40,17 @@ cargo test --manifest-path src-tauri/Cargo.toml
 npm run test:packaging
 npm run tauri:dev
 npm run tauri:build -- --bundles app
+npm run package:macos -- --output /ABSOLUTE/NEW/OUTPUT_DIRECTORY
 ```
 
-The Tauri build creates a **build candidate**, not a qualified installable
-release. Final staging/symlink restoration, nested signing, post-sign inventory,
-outer signing and .app/DMG packaging must follow T052; its maintained packaging
-command remains unfinished. Do not modify resources after outer signing or
-install a raw candidate as if final integrity had been verified. Acceptance-only
-candidate procedures/results are documented in the reports; see
-[quickstart](specs/001-deepseek-harness-desktop/quickstart.md) for qualification.
+The Tauri build creates a **raw candidate**, not a finalized distribution.
+`package:macos` stages/builds current source and creates a NEW copied app:
+restore links → nested ad-hoc signing → final inventory → outer signing →
+app/read-only mounted DMG verification. Sealed resources/manifest are never
+changed after outer signing. Failed output is incomplete and never implicitly
+reused/overwritten. See [local distribution evidence](tests/acceptance/reports/local-distribution.md)
+and [quickstart](specs/001-deepseek-harness-desktop/quickstart.md). This does not
+qualify clean-account/minimum-OS/full GUI/performance/public distribution.
 
 ## Lifecycle and safety
 
