@@ -16,12 +16,7 @@ import type { ApprovalOutcome } from "../../runtime/node_modules/@deepseek-ai/ds
 import type {} from "../../runtime/node_modules/@deepseek-ai/dsh-jobs/lib/types/index.d.ts";
 import type { ToolCallId } from "../../runtime/node_modules/@deepseek-ai/dsh-llm/lib/types/index.d.ts";
 
-// Bind pinned upstream exports to their published declarations, checking the runtime boundary.
-async function functionExport<T extends (...args: never[]) => unknown>(path: string, name: string): Promise<T> {
-  const module: unknown = await import(new URL(path, import.meta.url).href);
-  if (!module || typeof module !== "object" || !(name in module) || typeof Reflect.get(module, name) !== "function") throw Error("Missing pinned export");
-  return Reflect.get(module, name) as T;
-}
+import { functionExport } from "./upstream-export.ts";
 const runProfile = await functionExport<typeof RunProfile>("../../runtime/node_modules/@deepseek-ai/dsh/lib/profile-boot.js", "runProfile");
 const snapshot = await functionExport<typeof Snapshot>("../../runtime/node_modules/@deepseek-ai/dsh-launch-environment/lib/index.js", "createLaunchEnvironmentSnapshot");
 const brandString = await functionExport<typeof BrandString>("../../runtime/node_modules/@deepseek-ai/dsh-brand/lib/index.js", "brandString");

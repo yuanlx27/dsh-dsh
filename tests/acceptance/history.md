@@ -14,10 +14,12 @@ Generate ordinary histories through supported upstream Session/SessionPersistenc
 facilities or original UI; flush through upstream durability barriers. Validate
 records using upstream current-format/storage rules and reopen them through the
 upstream reader. Do not fabricate a shell storage schema, reader, title fallback,
-cache, repair API, directory migration, or model/task engine. T041's generator is
-required before large-history qualification; a recipe is not a generated fixture.
-Count **messages**, not events, frames or turns; include an upstream-validated
-1,000-message session and independently identifiable sessions in A and B.
+cache, repair API, directory migration, or model/task engine.
+[T041 helper](create-history-fixture.ts) now cold-validates four independent
+public user-only SDK histories (A=1,000/B=10 per owner); see
+[fixture evidence](reports/history-fixture.md). This is not native history/open
+latency acceptance. Count **messages**, not events, frames or turns; preserve
+exact corpus identity/roles rather than claim 1,000 real model completions.
 
 Corruption/torn-tail specimens are explicitly labelled negative derivatives of
 flushed disposable fixtures. Preserve their clean originals. Mutate only selected

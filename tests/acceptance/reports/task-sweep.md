@@ -9,6 +9,9 @@ prerequisite's installed/security/quantitative acceptance.
 
 - **T040**: [history cases](../history.md), ownership/recovery/title/workspace,
   negative derivatives and quantitative procedure defined. No history run claimed.
+- **T041**: supported pinned-R generator/cold validation, four histories with
+  A=1,000 user-only messages/B=10 per owner. [Report](history-fixture.md); 97 tests
+  pass. No native history or latency qualification.
 - **T045**: [official protocol](../official-comparison.md), reproducible O setup,
   unit/native artifact preparation, A1–A6 rows and scoped evidence rules.
 - **T046**: four command/quit core/source regressions plus reused lifecycle cases;
@@ -26,7 +29,7 @@ prerequisite's installed/security/quantitative acceptance.
 Also fixed a proven pending-cleanup/quit race RED→GREEN, without new task/owner
 subsystems, and resolved duplicate-fixture all-target Clippy through reuse.
 The [alignment report](alignment.md) records limits. No updated installed Rust
-candidate is implied. With five bounded completed tasks, **38/59** are checked;
+candidate is implied. With six bounded completed tasks, **39/59** are checked;
 functional/native/environment/final documentation gates remain open.
 
 ## Every other unfinished task inspected
@@ -39,7 +42,6 @@ functional/native/environment/final documentation gates remain open.
 | T037 | Integrated/core plus installed exit/Retry/history/no sampled replay. Direct installed old-cookie/handle negatives and pending-work recovery remain open; current Rust fix needs a new candidate |
 | T038 | Partial service-exit/native idle quit. Pending/queued work, missing/rejected/rate-limit model, credential change, multiple-work Stay/quit still runnable with further controlled fixtures; do not inherit real credentials |
 | T039 | Native receiving-boundary instrumentation and 20 idle-host response/action/Stop runs not qualified. Can prepare measurements independently, but cannot fill results from unit/SDK timings |
-| T041 | **Runnable next implementation**, using published Session/SessionPersistence and flush/validation facilities, no shell schema. Needed before 1,000-message acceptance; not blocked by unfinished US2 matrix |
 | T042 | Ordinary native history subset exists; expanded listing/title/follow-up/refusal matrix depends on T040/T041 fixtures. Existing product/source results are not full standalone/native comparison |
 | T043 | One installed interrupted service recovery does not satisfy 20 normal/10 forced history runs. Depends on validated fixtures/inventories and proven ownership; pending approvals remain unresolved |
 | T044 | Requires T041 validated 1,000-message fixture and already-connected named idle host/20 timed openings. Startup/read-only decode timing cannot substitute |
@@ -55,8 +57,8 @@ functional/native/environment/final documentation gates remain open.
 | T058 | Final-artifact cross-story reconciliation depends on remaining functional/security/performance/environment gates. Local ad-hoc and deferred public readiness separate; cannot declare final release while prerequisite gates fail/pending |
 | T059 | Current README/quickstart preparation implemented; final documentation qualification depends on T058/final workflow. Keep unchecked rather than promote conditional work |
 
-T041, T052 and early T053 work are explicitly **ready**, not falsely labelled
-blocked. Native matrices can continue when exact observation is reliable, using
+T041 is now complete at fixture scope. T052 and early T053 work remain explicitly
+**ready**, not falsely labelled blocked. Native matrices can continue when exact observation is reliable, using
 only prepared private roots/proven processes. Unreliable observations pause that
 operation, not unrelated tooling/docs/reference work. Subsequent sweep iterations
 must implement these ready tasks and refresh this table/results, not treat this

@@ -117,7 +117,7 @@ description: "Executable implementation tasks for DeepSeek Harness Desktop"
 ### Tests for User Story 3
 
 - [x] T040 [P] [US3] Define upstream-owned persistence/recovery cases in `tests/acceptance/history.md`: duplicate/blank titles with distinct identities, two-workspace follow-ups, completed/interrupted sessions, pending approval, recoverable incomplete tail versus corrupt/unsupported/missing records, discovery omission not implying no history, and moved/restored workspace without directory replacement or migration.
-- [ ] T041 [P] [US3] Create a fixture-generation helper in `tests/acceptance/create-history-fixture.ts` using supported pinned upstream session facilities to generate 1,000-message and two-workspace histories in disposable roots; validate committed records using upstream rules and fail rather than fabricate a replacement storage schema.
+- [x] T041 [P] [US3] Create a fixture-generation helper in `tests/acceptance/create-history-fixture.ts` using supported pinned upstream session facilities to generate 1,000-message and two-workspace histories in disposable roots; validate committed records using upstream rules and fail rather than fabricate a replacement storage schema.
 
 ### Integration and Verification for User Story 3
 

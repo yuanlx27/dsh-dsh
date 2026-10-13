@@ -3,7 +3,7 @@
 ## Status and prerequisites
 
 Runtime, authentication, native transport, shell/lifecycle and explicit recovery
-are implemented with scoped installed-app evidence. Default Rust and 94 Node
+are implemented with scoped installed-app evidence. Default Rust and 97 Node
 packaging checks pass; strict tooling/browser checks and desktop all-target
 Clippy pass. Full functional/quantitative/native reference/minimum-OS acceptance
 and maintained local .app/DMG packaging remain incomplete. See actual results in
