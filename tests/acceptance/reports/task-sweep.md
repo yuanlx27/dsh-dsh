@@ -17,15 +17,17 @@ prerequisite's installed/security/quantitative acceptance.
   addon build, five prescribed official suites **101 passed**; no official GUI.
 - **T051**: O/R change-review checklist and plan/research A1–A6 traceability review;
   affected evidence must be invalidated/retested before changing baselines.
-- **T059**: README/quickstart now describe implemented commands/prerequisites,
+- **T059 preparation only**: README/quickstart describe implemented commands,
   actual partial status, close versus quit, explicit recovery and accepted
   plaintext/bearer limits; raw candidates are not final distribution artifacts.
+  T059 remains unchecked: final documentation qualification follows T058 in the
+  dependency graph; current preparation does not satisfy that final gate.
 
 Also fixed a proven pending-cleanup/quit race RED→GREEN, without new task/owner
 subsystems, and resolved duplicate-fixture all-target Clippy through reuse.
 The [alignment report](alignment.md) records limits. No updated installed Rust
-candidate is implied. With these six bounded task deliverables, **39/59** are
-checked; functional/native/environment gates remain open.
+candidate is implied. With five bounded completed tasks, **38/59** are checked;
+functional/native/environment/final documentation gates remain open.
 
 ## Every other unfinished task inspected
 
@@ -51,6 +53,7 @@ checked; functional/native/environment gates remain open.
 | T056 | Installed negative subsets exist; final-candidate access/native lifetime negatives plus bounded idle/setup/task traffic and remote direct admission remain open. Only public loopback fixtures; no secret dumps |
 | T057 | >=10 actual target developers/uniform briefs required; no simulated agent participants, assisted successes or model-generated ratings substituted. External participation condition cannot be manufactured |
 | T058 | Final-artifact cross-story reconciliation depends on remaining functional/security/performance/environment gates. Local ad-hoc and deferred public readiness separate; cannot declare final release while prerequisite gates fail/pending |
+| T059 | Current README/quickstart preparation implemented; final documentation qualification depends on T058/final workflow. Keep unchecked rather than promote conditional work |
 
 T041, T052 and early T053 work are explicitly **ready**, not falsely labelled
 blocked. Native matrices can continue when exact observation is reliable, using
