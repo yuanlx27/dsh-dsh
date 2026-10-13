@@ -63,17 +63,19 @@ No task state or raw backend diagnostic is introduced into the shell.
   all-target desktop Clippy qualification; the previously recorded shared-fixture
   duplicate-module issue remains open.
 
-The installed acceptance candidate is still source **2bdf282**, so its embedded
-shell does **not** contain this message change. No new installed native
-service-exit/Retry, real-cookie/handle retirement, interrupted-history preservation
-or persisted pending-work/no-replay acceptance is claimed by these fixtures.
+At the core-regression commit b8169e0 the installed candidate was still source
+2bdf282 and lacked the changed message. A subsequent separately verified
+[b8169e0 native candidate](native-service-retry.md) now executes actual backend
+exit, explicit Retry, persisted interrupted history and bounded no-replay, then
+fresh explicit task completion. Old backend exit precedes new backend startup.
+Direct installed old-cookie/handle negatives and persisted pending-work/approval
+restart remain unqualified; core fixtures must not substitute for them.
 T037/T038 remain unchecked; prior native task reports remain separate evidence.
 
-Next: build/verify a new isolated release; submit one public held task through the
-original UI, capture exact app/launcher/Node identities, deliberately end only the
-positively proven owned backend, observe failure without automatic replacement,
-then perform explicit Retry and inspect bounded receipt/history/fixture-operation
-counts. No speculative PID signals, real profiles or automatic submission replay.
+The native held-task procedure above is now executed once with captured owned
+identities, updated presentation, exact receipts/counts and confirmed cleanup.
+Next: expand pending/queued work and interrupted recovery negatives without
+speculative PID signals, real profiles or automatic submission replay.
 Remaining T038 matrix includes pending approval, missing/rejected/rate-limited
 model, credential change during work and multi-session Stay/confirmed quit.
 T039 requires actual receiving-boundary timestamps across 20 native runs; no test

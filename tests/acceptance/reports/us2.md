@@ -146,7 +146,12 @@ actual owned synthetic-child exit with auth/permit/opaque-handle revocation and
 explicit generation-two startup, rejecting old buffered work. It corrects the
 startup-only exit wording with a RED-to-GREEN shell regression. These core tests
 do not replace installed dsh/WK service-exit, task-history or Retry acceptance;
-the prior installed candidate still lacks the updated shell text.
+the prior installed candidate still lacks the updated shell text. A separately
+built/verified [b8169e0 installed recovery candidate](native-service-retry.md)
+subsequently exercises actual updated failure UI, old backend exit before explicit
+Retry/new backend startup, original interrupted history with no sampled replay,
+and a separate fresh submission/completion. Pending-work, direct installed old
+cookie/handle negatives and the full recovery/quit/latency matrix remain open.
 
 ## Still pending
 
