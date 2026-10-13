@@ -125,7 +125,7 @@ specs/001-deepseek-harness-desktop/
 
 `tasks.md` is a later Phase 2 artifact and is not generated here.
 
-### Source Code (repository root, proposed; not yet implemented)
+### Source Code (implemented layout; qualification ongoing)
 
 ```text
 package.json
@@ -149,8 +149,9 @@ tests/
 └── acceptance/
 ```
 
-**Structure Decision**: A single Tauri application, not a monorepo. The repository
-currently contains planning/tooling documents only. Prefer Rust standard library
+**Structure Decision**: A single Tauri application, not a monorepo. The listed
+runtime/shell/transport layout is implemented; installed acceptance and final
+packaging remain incomplete. Prefer Rust standard library
 and Tauri/native lifecycle, menu, dialog and resource APIs. Use a small native
 launcher because the upstream dsh bin is JavaScript, not a binary suitable for
 Tauri `externalBin`; it invokes the bundled Node and upstream CLI, not a second
@@ -192,6 +193,10 @@ Do not add a reference registry, task inspector, shortcut store or new runtime
 protocol. A proposed change to O or R must review all affected A1–A6 decisions,
 source evidence, compatibility with R, and comparisons before adoption; unavailable
 evidence stays pending and blocks an alignment-complete release claim.
+The executed [comparison protocol/change checklist](../../tests/acceptance/official-comparison.md)
+and [immutable O unit results](../../tests/acceptance/reports/official-reference.md)
+review this mapping without changing either baseline. Unit evidence does not
+upgrade pending native A1–A6 comparisons.
 
 ## Phase 0: Research
 

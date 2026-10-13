@@ -2,25 +2,27 @@
 
 ## Status and prerequisites
 
-Runtime foundation tooling and native authentication are implemented; desktop
-UI/transport/lifecycle integration and installed qualification remain unfinished.
-`runtime:prepare`, `runtime:verify`, `check:source` and `typecheck:tools` are
-runnable. Full Rust/Node suites still fail on pending HTTP/lifecycle/shim modules;
-Tauri builds require the remaining shell/app deliverables. See the actual results
-in `tests/acceptance/reports/`, not this planned end-to-end command sequence.
+Runtime, authentication, native transport, shell/lifecycle and explicit recovery
+are implemented with scoped installed-app evidence. Default Rust and 94 Node
+packaging checks pass; strict tooling/browser checks and desktop all-target
+Clippy pass. Full functional/quantitative/native reference/minimum-OS acceptance
+and maintained local .app/DMG packaging remain incomplete. See actual results in
+`tests/acceptance/reports/`, including `task-sweep.md`, not a blanket release claim.
 
 All committed JS/TS-layer source is TypeScript. Node 24.21.0 directly runs tooling
 and tests with erasable types; `tsc` separately checks implemented tooling/tests.
-The pending T027 adapter contract is explicitly excluded from the tooling type
-check until its module exists, but remains in `test:packaging` and fails there.
+The T027 adapter is implemented, typechecked and exercised in `test:packaging`;
+its former temporary tooling exclusion is removed.
 Downloaded dependencies and browser-generated JavaScript remain Git-ignored;
 native Rust and existing Spec Kit shell scripts are unchanged.
 
 Implementation prerequisites:
 - macOS Apple Silicon, Xcode Command Line Tools, pinned Rust toolchain;
 - build-host Node 24.21.0 and npm; these are not installed-user prerequisites;
-- registry access while preparing the locked runtime, valid DeepSeek test key,
-  disposable Git workspace and controlled task/approval fixtures;
+- registry access while preparing the locked runtime; disposable Git workspaces
+  and controlled loopback model/task/approval fixtures. Public synthetic fixture
+  credentials suffice for controlled tests; separately qualified live API tests
+  require an actual provider key, never committed or inherited accidentally;
 - no Apple developer account is required for current local ad-hoc signing/testing;
   Developer ID credentials are required only for deferred public distribution;
 - named release-test host from [plan](plan.md), plus macOS 14 Apple Silicon
@@ -29,7 +31,7 @@ Implementation prerequisites:
 Use fixture credentials and never store real keys or raw service URLs in Git.
 Tests that intentionally edit files/run commands must use disposable directories.
 
-## Planned developer commands (from repository root)
+## Implemented developer commands (from repository root)
 
 ```sh
 npm ci
@@ -40,12 +42,14 @@ npm run runtime:verify
 cargo test --manifest-path src-tauri/Cargo.toml
 npm run test:packaging
 npm run tauri:dev
-npm run tauri:build -- --target aarch64-apple-darwin --bundles app,dmg
+npm run tauri:build -- --bundles app
 ```
 
-Expected after remaining implementation: locked build-time downloads only; matching full desktop/dsh version;
-bundled Node/dsh and complete frontend/native runtime; tests passing; generated
-app/DMG. `runtime:verify` must fail on a deliberately mismatched manifest/package.
+These commands stage the locked build-time runtime, verify canonical version and
+closure, run core/tooling tests and create a Tauri build candidate.
+`runtime:verify` fails on a deliberately mismatched manifest/package. A raw build
+candidate is not a finalized distribution: resource symlinks/nested signatures
+and final inventory require the pending maintained T052 packaging procedure.
 Development success is not a substitute for installed native-build acceptance.
 The command sequence above does not establish final signing/manifest ordering;
 T052's planned `scripts/package-macos.ts` procedure must sign nested resources,
@@ -55,7 +59,9 @@ and WebSocket paths; Electron-only tests do not prove the Tauri adaptation.
 
 ## Delivery modes and final packaging
 
-Current delivery is a locally installed ad-hoc-signed .app/DMG. It requires no
+Current executed delivery evidence is an isolated locally installed ad-hoc-signed
+.app; maintained .app/DMG packaging and final installed-distribution qualification
+remain pending. It requires no
 Apple developer account and makes no claim of Apple notarization or Gatekeeper
 acceptance on another computer. Do not disable system security controls to obtain
 passing evidence. If a host rejects installation/launch, record that limitation.
@@ -161,7 +167,9 @@ not sandboxed away from the dsh operations that content can request.
 
 This protocol validates A1–A6 in the [plan](plan.md#official-desktop-alignment-fr-022fr-024)
 and FR-022–FR-024. Current status for all six runtime comparisons: **pending**.
-The present update inspected source only; it did not build or execute either app.
+The original planning update inspected source only. Subsequent official unit
+execution and product installed subsets are reported separately; the official
+native .app has not been built/launched for these comparisons.
 
 ### Reference setup and prerequisites
 
@@ -192,14 +200,17 @@ pnpm exec vitest run apps/desktop/tests/backend-controller.spec.ts \
 ```
 
 Expected: exact checkout identity and recorded test results for the relevant
-source behavior. These commands have **not** been run in this repository/session.
+source behavior. These prescribed reference commands were subsequently executed at exact O in
+an isolated checkout: frozen install, native-system build and **101 tests in five
+files pass**. See [official reference](../../../tests/acceptance/reports/official-reference.md)
+for provenance, the corrected full-Node/header prerequisite and limitations.
 If the upstream prerequisites or build are unavailable, record that evidence as
 pending rather than silently changing O. A passing upstream unit test is useful
 reference evidence but does not prove product WKWebView, process lifetime or
 installed-app behavior. A source-only read is not a passing comparison.
 
-Use the product's planned developer commands above after implementation; they
-are still deliverables, not currently existing scripts. Installed-app comparisons
+Use the implemented product developer commands above, keeping raw build
+candidates separate from finalized installed artifacts. Installed-app comparisons
 require the actual product build and verified official artifact at O. For
 unknown-state/late-response tests that cannot be induced safely in the official
 UI, use executed deterministic official tests and matching product lifecycle

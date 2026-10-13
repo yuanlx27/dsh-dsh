@@ -29,7 +29,9 @@ pending.
 ## 1. Desktop stack and supported platform
 
 **Decision**: Tauri 2 with Rust lifecycle ownership and WKWebView; first release
-macOS 14+ Apple Silicon, signed/notarized DMG. Use small local HTML/TypeScript
+macOS 14+ Apple Silicon. Current delivery uses local ad-hoc candidates;
+Developer ID/notarization is deferred public-release work, not a prerequisite for
+local testing. Use small local HTML/TypeScript
 startup/failure views and upstream's Web UI for the workspace.
 
 **Rationale**: Tauri is the user's explicit choice. Native menus, dialogs,
@@ -377,7 +379,12 @@ inspect replacement immutable sources, check Web release compatibility, update
 contracts/scenarios only where needed, and invalidate affected previous comparison
 results. Unavailable official runtime/source evidence remains pending and blocks
 an alignment-complete release claim; it is not an unresolved architecture choice
-for the historical official-reference pass. The resolved FR-025 reconciliation follows.
+for the historical official-reference pass. The current
+[change-review checklist](../../tests/acceptance/official-comparison.md) confirms
+unchanged A1–A6/FR traceability. Subsequent immutable O unit execution is in
+[official-reference.md](../../tests/acceptance/reports/official-reference.md), not
+retroactively claimed by this historical inspection. Native comparisons remain
+pending. The resolved FR-025 reconciliation follows.
 
 ## 9. FR-025 and credential protection reconciliation
 
