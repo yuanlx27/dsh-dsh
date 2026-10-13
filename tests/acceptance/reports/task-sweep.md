@@ -51,7 +51,7 @@ functional/native/environment/final documentation gates remain open.
 | T048 | Product subsets and O unit results available; **verified isolated official native artifact** still pending. Can prepare/build it independently; do not infer artifact provenance or share product data roots |
 | T049 | Same official artifact prerequisite plus ten native Stay→confirm trials/route-focus matrix. Unit unknown/disposal tests supplement, never replace ownerless native/zero-window execution |
 | T050 | Actual cleanup-state correction and regression done in this sweep; keep task open until remaining T048/T049 findings and affected installed scenarios are rerun |
-| T053 | Ten portable cases plus actual installed/mounted Node/SDK native loads pass, reusing one inventory algorithm. Fresh installed GUI/About/full startup-download observation remains pending; unit signer is explicit fake, not native acceptance |
+| T053 | Ten portable cases/installed+mounted SDK loads and [new native startup/Harness/Stay/quit smoke](native-distribution-smoke.md) pass at bounded scopes. Native About route remains unestablished; full startup traffic absent. Unit signer is explicit fake; keep task open |
 | T054 | Semantic/AX and focused keyboard subsets exist. Full keyboard-only/VoiceOver startup/notice/retry/ownerless-quit qualification still pending; no generic accessibility bypass or product-wide WCAG claim |
 | T055 | Final T052 distribution and a genuinely clean account required; macOS 14 Apple Silicon runner unavailable. Private HOME on this host is not a clean OS account/minimum OS. Public signing/Gatekeeper remains deferred |
 | T056 | Installed negative subsets exist; final-candidate access/native lifetime negatives plus bounded idle/setup/task traffic and remote direct admission remain open. Only public loopback fixtures; no secret dumps |
@@ -64,4 +64,6 @@ Remaining T053/native cases are **ready**, not falsely labelled blocked. Native 
 only prepared private roots/proven processes. Unreliable observations pause that
 operation, not unrelated tooling/docs/reference work. Subsequent sweep iterations
 must implement these ready tasks and refresh this table/results, not treat this
-review as their completion. No new app/supplier was launched in this sweep.
+review as their completion. One new T052 distribution app was subsequently
+launched for bounded native smoke and confirmed quit; no supplier/task was
+started. All captured processes are now stopped.
