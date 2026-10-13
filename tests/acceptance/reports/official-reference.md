@@ -54,3 +54,27 @@ T047's prescribed immutable checkout, dependency/native preparation, selected
 tests and limitation recording are executed. Missing native reference evidence
 still blocks alignment-complete/SC-008; T045/T051 preparation/review cannot waive it.
 No secrets, raw user/model/session reports or authenticated URLs were retained.
+
+## Subsequent native artifact preflight (T048/T049 prerequisite)
+
+Exact-O mac-arm64 packaging `--check` was attempted in its separate HOME/tool
+environment and fails **missing `.env.macos`** before build/signing. Source
+validation requires file-owned release settings, signing identity/team/P12/password
+and a notarization strategy. `--unsigned --check` actually refuses:
+**`--unsigned requires win-x64`**. No fake credentials, source patch, preflight
+bypass, keychain modification or release operation. This prescribed reference
+packaging route needs unavailable external inputs; the product's independent
+local ad-hoc T052 remains complete.
+
+Private pnpm first attempted a dependency-status reinstall (missing pnpm PATH,
+then refused non-TTY purge); no reinstall/source mutation accepted. Direct
+existing **root tsx** safely executes the same immutable preflight without that
+wrapper. Tracked O tree remains clean; no official app/backend launched.
+Public GitHub releases queried include `dsh-v0.2.1-alpha.1` with **zero assets**;
+this bounded acquisition route supplies no verified exact-O native artifact.
+Other acquisition is not claimed impossible, but cannot be invented or replaced
+silently with another commit/unpackaged development shell.
+
+T048/T049 affected installed portions stay skipped/open pending a trusted exact-O
+artifact or supported prerequisites. Continue independent product work rather
+than request real secrets or infer unit/native parity.
